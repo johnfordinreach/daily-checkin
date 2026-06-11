@@ -235,78 +235,6 @@ textarea{height:60px;resize:none}
 .pull-indicator.visible{transform:translateX(-50%) translateY(0)}
 .kbd-hint{font-size:10px;color:var(--text-3);background:var(--bg-2);border:1px solid var(--border-2);border-radius:5px;padding:1px 5px;font-family:ui-monospace,monospace;margin-left:4px;display:none}
 @media(min-width:768px){.kbd-hint{display:inline}}
-
-/* ============ VISUAL POLISH LAYER ============ */
-:root{
-  --ease-spring:cubic-bezier(.34,1.56,.64,1);
-  --ease-out:cubic-bezier(.16,1,.3,1);
-  --shadow-brand:0 2px 8px rgba(214,62,14,.28),0 1px 2px rgba(0,0,0,.08);
-}
-
-/* Tab content fades+rises in on each render for a calmer transition between views */
-.nav-content{animation:viewIn .32s var(--ease-out)}
-@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* Route card: animate the body open instead of hard snap, and add a brand accent edge when expanded */
-.route-card{position:relative}
-.route-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand);border-radius:var(--radius-lg) 0 0 var(--radius-lg);opacity:0;transform:scaleY(.4);transition:opacity .2s,transform .25s var(--ease-out);pointer-events:none}
-.route-card:has(.route-body.open)::before{opacity:1;transform:scaleY(1)}
-.route-body.open{animation:bodyIn .26s var(--ease-out)}
-@keyframes bodyIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
-/* Status dot on route head gets a soft halo so it reads at a glance */
-.sdot{box-shadow:0 0 0 3px color-mix(in srgb,currentColor 0%,transparent)}
-.sdot-yes{box-shadow:0 0 0 3px rgba(99,153,34,.16)}
-.sdot-no{box-shadow:0 0 0 3px rgba(226,75,74,.16)}
-.sdot-out{box-shadow:0 0 0 3px rgba(239,159,39,.16)}
-
-/* KPI cards: subtle lift + value count feels more alive on hover (desktop) */
-.kpi{transition:transform .18s var(--ease-out),box-shadow .18s,border-color .18s}
-@media(hover:hover){.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--border-2)}}
-.kpi-val{font-variant-numeric:tabular-nums}
-.sb-num,.tote-val,.kpi-delta{font-variant-numeric:tabular-nums}
-
-/* Primary button gets a quiet sheen and warmer resting shadow */
-.btn-primary{box-shadow:var(--shadow-brand);position:relative;overflow:hidden}
-.btn-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 60%);pointer-events:none}
-@media(hover:hover){.btn-primary:hover{box-shadow:0 4px 14px rgba(214,62,14,.36),0 1px 3px rgba(0,0,0,.12)}}
-
-/* Secondary buttons + toggles: gentler press feedback on touch */
-.btn-sec{transition:transform .1s var(--ease-out),opacity .12s,box-shadow .15s}
-.btn-sec:active{transform:scale(.97)}
-.toggle-btn:active{transform:scale(.96)}
-
-/* Nav: active indicator bar on desktop sidebar, smoother icon pop on mobile */
-.nav-btn{transition:color .15s,background .15s}
-.nav-btn.active i{animation:navPop .3s var(--ease-spring)}
-@keyframes navPop{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1.1)}}
-@media(min-width:768px){.nav-btn.active i{animation:none}}
-
-/* Section labels: the accent bar gets a soft gradient instead of flat */
-.section-lbl{border-left:none;position:relative;padding-left:11px}
-.section-lbl::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:3px;border-radius:2px;background:var(--brand);background:linear-gradient(180deg,var(--brand),color-mix(in srgb,var(--brand) 55%,transparent))}
-
-/* Cards lift very slightly on press for tactile feel where they're tappable */
-.history-day{transition:background .12s,transform .12s var(--ease-out),box-shadow .15s}
-.history-day:active{transform:scale(.99)}
-@media(hover:hover){.history-day:hover{box-shadow:var(--shadow-md)}}
-
-/* Pull-to-refresh icon actually spins while active */
-.pull-indicator.visible i{animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Toast: a touch more depth */
-.toast{box-shadow:0 8px 28px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12)}
-
-/* Inputs settle into focus a little more smoothly */
-input,select,textarea{transition:border-color .18s var(--ease-out),box-shadow .18s var(--ease-out),background .15s}
-
-/* Respect users who don't want motion */
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
-  .sync-live .sync-dot{animation:none}
-}
-/* ============ END POLISH LAYER ============ */
 </style>
 </head>
 <body>
@@ -425,17 +353,11 @@ const BRANCHES={
 const BRANCH_IDS=["austin","dallas","houston","linthicum","midland","sanantonio"];
 const BRANCH_ROUTES_KEY="branch_routes_v1";
 const BRANCH_SEL_KEY="branch_selected_v1";
-const RECAP_KEY="dfw_recap_dismissed_v1";
 
 // ---- State ----
 let st={branch:"dallas",tab:"today",todayView:"entry",openIdx:null,detailDate:null,trendRange:30,briefings:{},branchBriefings:{},syncStatus:"local",syncError:"",managerName:"",selectedDate:null,rollupDate:null,branchRoutes:{},budgets:{},driverRange:30,notifSettings:{},routeMgmtOpen:false,showFinishedRoutes:false,attendanceMonth:null,attendanceDay:null,budgetMonth:null,recapDismissed:null,rollupPeriod:"monthly"};
 let fb={app:null,db:null,unsubAll:null,unsubBudgets:null,modules:null};
 let wt=null;
-let wtPending=null;
-// Chart instances must be destroyed before re-render or they leak (Chart.js keeps resize observers alive)
-let chartRegistry=[];
-function mkChart(ctx,cfg){const c=new Chart(ctx,cfg);chartRegistry.push(c);return c;}
-function destroyCharts(){chartRegistry.forEach(c=>{try{c.destroy();}catch(e){}});chartRegistry=[];}
 
 function activeBranch(){return BRANCHES[st.branch]||BRANCHES.dallas;}
 function branchRoutes(bid){
@@ -582,7 +504,6 @@ function loadLocal(){
   repairAllBranchData();
   st.briefings=st.branchBriefings[st.branch]||{};
   try{st.managerName=localStorage.getItem(MGR_KEY)||"";}catch(e){}
-  try{st.recapDismissed=localStorage.getItem(RECAP_KEY)||null;}catch(e){}
   st.selectedDate=todayKey();st.rollupDate=todayKey();
   const b=st.briefings[st.selectedDate];if(b&&b.published)st.todayView="summary";
 }
@@ -753,38 +674,26 @@ function qW(b){
   if(st.syncStatus!=="live"||!fb.modules||!fb.db)return;
   const branchAtQueue=st.branch;
   clearTimeout(wt);
-  wtPending={b,branchId:branchAtQueue};
-  wt=setTimeout(()=>flushWrite(),700);
-}
-async function flushWrite(){
-  clearTimeout(wt);
-  const p=wtPending;wtPending=null;
-  if(!p||!fb.modules||!fb.db)return;
-  const{doc,setDoc}=fb.modules;
-  try{await setDoc(doc(fb.db,BRANCHES[p.branchId].collection,p.b.date),{...p.b,lastEditedAt:new Date().toISOString(),lastEditedBy:st.managerName||""});}
-  catch(e){console.error("qW write failed:",e.code,e.message);persistLocal();}
+  wt=setTimeout(async()=>{
+    if(!fb.modules||!fb.db)return;
+    const{doc,setDoc}=fb.modules;
+    try{await setDoc(doc(fb.db,BRANCHES[branchAtQueue].collection,b.date),{...b,lastEditedAt:new Date().toISOString(),lastEditedBy:st.managerName||""});}
+    catch(e){console.error("qW write failed:",e.code,e.message);persistLocal();}
+  },700);
 }
 
 // ---- Actions ----
 window.prevDay=function(){
-  captureBeforeNav();
   const d=new Date(selKey()+"T12:00:00");d.setDate(d.getDate()-1);
   st.selectedDate=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();
 };
 window.nextDay=function(){
-  captureBeforeNav();
   const d=new Date(selKey()+"T12:00:00");d.setDate(d.getDate()+1);
   st.selectedDate=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();
 };
-window.jumpToday=function(){captureBeforeNav();st.selectedDate=todayKey();const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();};
-// Capture any in-progress edits on the open route form and flush them before navigating away.
-function captureBeforeNav(){
-  if(st.tab==="today"&&st.todayView==="entry"&&st.openIdx!=null){
-    const b=ensureToday();collectTo(b);qW(b);
-  }
-}
+window.jumpToday=function(){st.selectedDate=todayKey();const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();};
 window.switchTab=function(t){if(st.tab==="today"&&st.todayView==="entry"){const b=ensureToday();collectTo(b);qW(b);}st.tab=t;st.detailDate=null;render();};
 window.toggleRoute=function(i){const b=ensureToday();collectTo(b);qW(b);st.openIdx=st.openIdx===i?null:i;render();};
 window.setAtt=function(i,s){const b=ensureToday();collectTo(b);b.routes[i].status=s;qW(b);render();};
@@ -823,13 +732,13 @@ window.clearSecondDriver=function(i){
 };
 window.switchBranch=function(bid){
   if(!BRANCHES[bid]||bid===st.branch)return;
-  // Save current branch state synchronously, then flush the pending write
-  // for the OLD branch so we don't drop an in-flight edit when switching.
+  // Cancel any pending debounced write for the old branch
+  clearTimeout(wt);
+  // Save current branch state synchronously before switching
   if(st.tab==="today"&&st.todayView==="entry"){
     const b=ensureToday();collectTo(b);
   }
   persistLocal();
-  flushWrite();
   // Switch branch — no need to re-subscribe, all branches already subscribed
   st.branch=bid;
   try{localStorage.setItem(BRANCH_SEL_KEY,bid);}catch(e){}
@@ -873,7 +782,30 @@ window.markAllOff=function(){const b=ensureToday();collectTo(b);b.routes.forEach
 window.setBS=function(s){const b=ensureToday();collectTo(b);b.checkInStatus=s;if(s==="finished"&&!b.published){b.published=true;b.publishedAt=new Date().toISOString();}qW(b);render();};
 window.genBriefing=function(){const b=ensureToday();collectTo(b);b.published=true;b.publishedAt=new Date().toISOString();b.checkInStatus="finished";qW(b);st.todayView="summary";st.openIdx=null;render();showToast("Briefing published");setTimeout(()=>checkAndNotify(b),1500);};
 window.goEdit=function(){st.todayView="entry";render();};
-window.newBriefing=function(){if(!confirm("Reset this day's briefing?"))return;const k=selKey();st.briefings[k]=freshBriefing(k);qW(st.briefings[k]);st.openIdx=null;st.todayView="entry";render();};
+window.newBriefing=function(){
+  // Build a prominent warning modal instead of a bare browser confirm
+  const existing=document.getElementById('reset-modal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='reset-modal';
+  modal.style.cssText='position:fixed;inset:0;z-index:998;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)';
+  modal.innerHTML=`
+    <div style="background:var(--bg);border-radius:22px;padding:28px 24px;max-width:340px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.35);border:2px solid var(--danger-border);animation:popIn .3s cubic-bezier(.34,1.56,.64,1)">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+          <i class="ti ti-alert-triangle" style="font-size:26px;color:var(--danger-text)"></i>
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--danger-text);margin-bottom:8px">Reset This Day?</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.6">This will <strong style="color:var(--danger-text)">permanently erase</strong> all route data, attendance, safety scores, spoils, shrink, and revenue entered for <strong>${selKey()}</strong>.<br><br>This cannot be undone.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="document.getElementById('reset-modal').remove();const k=selKey();st.briefings[k]=freshBriefing(k);qW(st.briefings[k]);st.openIdx=null;st.todayView='entry';render();" style="background:var(--danger-text);color:#fff;border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Yes, Reset All Data</button>
+        <button onclick="document.getElementById('reset-modal').remove()" style="background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:14px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;width:100%">Cancel — Keep My Data</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  document.body.appendChild(modal);
+};
 window.viewSum=function(){st.todayView="summary";render();};
 window.viewDay=function(key){st.detailDate=key;render();};
 window.backH=function(){st.detailDate=null;render();};
@@ -1465,7 +1397,7 @@ function renderRoute(r,i){
 }
 
 // ---- Yesterday's Recap Card ----
-window.dismissRecap=function(){st.recapDismissed=todayKey();try{localStorage.setItem(RECAP_KEY,st.recapDismissed);}catch(e){}render();};
+window.dismissRecap=function(){st.recapDismissed=todayKey();render();};
 
 function renderRecapCard(){
   // Don't show if dismissed today
@@ -1772,7 +1704,6 @@ function renderTrends(){
 }
 
 function drawCharts(){
-  destroyCharts();
   const dates=lastN(st.trendRange).sort();if(!dates.length)return;
   const labels=dates.map(d=>{const[y,m,dd]=d.split("-");return`${parseInt(m)}/${parseInt(dd)}`;});
   const otData=dates.map(d=>bStats(st.briefings[d]).otPct);
@@ -1783,21 +1714,21 @@ function drawCharts(){
   const common={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#191917",titleColor:"#fff",bodyColor:"#fff",padding:8}},scales:{x:{ticks:{color:tc,maxTicksLimit:7,maxRotation:0,font:{size:10}},grid:{display:false}}}};
   const otCtx=document.getElementById("chart-ot");
   if(otCtx){const v=otData.filter(x=>x!==null);const mn=v.length?Math.max(0,Math.min(...v)-10):0;
-    mkChart(otCtx,{type:"line",data:{labels,datasets:[{data:otData,borderColor:"#D63E0E",backgroundColor:"rgba(214,62,14,.08)",borderWidth:2,fill:true,tension:.35,spanGaps:true,pointRadius:d=>otData[d.dataIndex]!==null&&otData[d.dataIndex]<90?4:0,pointBackgroundColor:"#E24B4A"}]},options:{...common,scales:{...common.scales,y:{min:mn,max:105,ticks:{color:tc,callback:v=>v+"%",stepSize:10,font:{size:10}},grid:{color:gc}}}}});}
+    new Chart(otCtx,{type:"line",data:{labels,datasets:[{data:otData,borderColor:"#D63E0E",backgroundColor:"rgba(214,62,14,.08)",borderWidth:2,fill:true,tension:.35,spanGaps:true,pointRadius:d=>otData[d.dataIndex]!==null&&otData[d.dataIndex]<90?4:0,pointBackgroundColor:"#E24B4A"}]},options:{...common,scales:{...common.scales,y:{min:mn,max:105,ticks:{color:tc,callback:v=>v+"%",stepSize:10,font:{size:10}},grid:{color:gc}}}}});}
   const sfCtx=document.getElementById("chart-safety");
   if(sfCtx){const v=safetyData.filter(x=>x!==null);const mn=v.length?Math.max(0,Math.min(...v)-5):0;
-    mkChart(sfCtx,{type:"line",data:{labels,datasets:[
+    new Chart(sfCtx,{type:"line",data:{labels,datasets:[
       {data:safetyData,borderColor:"#E24B4A",backgroundColor:"rgba(226,75,74,.07)",borderWidth:2,fill:true,tension:.35,spanGaps:true,pointRadius:d=>safetyData[d.dataIndex]!==null&&safetyData[d.dataIndex]<90?4:0,pointBackgroundColor:"#E24B4A"},
       {data:Array(dates.length).fill(95),borderColor:"rgba(99,153,34,.4)",borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
     ]},options:{...common,scales:{...common.scales,y:{min:mn,max:102,ticks:{color:tc,stepSize:5,font:{size:10}},grid:{color:gc}}}}});}
   const mCtx=document.getElementById("chart-missed");
-  if(mCtx){mkChart(mCtx,{type:"bar",data:{labels,datasets:[{data:missedData,backgroundColor:missedData.map(v=>v===0?"#639922":v<=2?"#EF9F27":"#E24B4A"),borderRadius:4}]},options:{...common,scales:{...common.scales,y:{beginAtZero:true,ticks:{color:tc,stepSize:1,precision:0,font:{size:10}},grid:{color:gc}}}}});}
+  if(mCtx){new Chart(mCtx,{type:"bar",data:{labels,datasets:[{data:missedData,backgroundColor:missedData.map(v=>v===0?"#639922":v<=2?"#EF9F27":"#E24B4A"),borderRadius:4}]},options:{...common,scales:{...common.scales,y:{beginAtZero:true,ticks:{color:tc,stepSize:1,precision:0,font:{size:10}},grid:{color:gc}}}}});}
 
   // Revenue chart
   const revData=dates.map(d=>getBranchDayRevenue(st.branch,d));
   const revCtx=document.getElementById("chart-revenue");
   if(revCtx&&revData.some(v=>v>0)){
-    mkChart(revCtx,{type:"bar",data:{labels,datasets:[{data:revData,backgroundColor:"rgba(214,62,14,.7)",borderRadius:4}]},
+    new Chart(revCtx,{type:"bar",data:{labels,datasets:[{data:revData,backgroundColor:"rgba(214,62,14,.7)",borderRadius:4}]},
       options:{...common,scales:{...common.scales,y:{beginAtZero:true,ticks:{color:tc,callback:v=>"$"+(v>=1000?(v/1000).toFixed(0)+"K":v),font:{size:10}},grid:{color:gc}}}}});
   }
 
@@ -1814,7 +1745,7 @@ function drawCharts(){
   });
   const ssCtx=document.getElementById("chart-spoils-shrink");
   if(ssCtx&&(spoilsData.some(v=>v>0)||shrinkData.some(v=>v>0))){
-    mkChart(ssCtx,{type:"bar",data:{labels,datasets:[
+    new Chart(ssCtx,{type:"bar",data:{labels,datasets:[
       {label:"Spoils %",data:spoilsData,backgroundColor:"rgba(226,75,74,.75)",borderRadius:4},
       {label:"Shrink %",data:shrinkData,backgroundColor:"rgba(239,159,39,.75)",borderRadius:4}
     ]},options:{...common,plugins:{...common.plugins,legend:{display:true,position:"top",labels:{color:tc,font:{size:11},boxWidth:12,padding:12}}},scales:{...common.scales,y:{beginAtZero:true,ticks:{color:tc,callback:v=>v+"%",font:{size:10}},grid:{color:gc}}}}});
@@ -1956,226 +1887,18 @@ function adjRollupByPeriod(n){
 }
 function aggregatePeriodStats(bid,dates){
   const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
-  let tA=0,tM=0,tLate=0,tOut=0,tFin=0,tRun=0,tLocs=0,tMR=0,sfVals=[],revTotal=0,daysWithData=0,tSpoils=0,tShrink=0;
-  // Count ALL business days in the date window, not just days with data.
-  // This is the denominator for per-day rates and must match what the baseline uses.
-  const bizDays=dates.filter(dk=>{const[y,m,d]=dk.split('-').map(Number);return isWorkDay(y,m,d);}).length;
+  let tA=0,tM=0,tLate=0,tOut=0,tFin=0,tRun=0,tLocs=0,tMR=0,sfVals=[],revTotal=0,daysWithData=0;
   dates.forEach(dk=>{
     const b=brf[dk];if(!b||!b.routes)return;
-    daysWithData++;
-    const[y2,mo2,dd2]=dk.split('-').map(Number);
-    const isBiz=isWorkDay(y2,mo2,dd2);
-    const s=bStats(b);
-    tA+=s.totalAssets;tM+=s.totalMissed;tLate+=s.late;
-    const uncovered=(b.routes||[]).filter(r=>ABSENCE.includes(r.status)&&r.driverType==="assigned"&&r.status!=="off").length;
-    tOut+=uncovered;
+    daysWithData++;const s=bStats(b);
+    tA+=s.totalAssets;tM+=s.totalMissed;tLate+=s.late;tOut+=s.out;
     tFin+=s.finished;tRun+=s.runningCount;tLocs+=s.totalLocs;tMR+=s.totalMissedRestocks||0;
-    if(isBiz){
-      tSpoils+=s.totalSpoils||0;tShrink+=s.totalShrink||0;
-      if(b.revenue||b.routes)revTotal+=getBranchDayRevenue(bid,dk);
-    }
     if(s.avgSafety!==null)sfVals.push(s.avgSafety);
+    if(b.revenue||b.routes)revTotal+=getBranchDayRevenue(bid,dk);
   });
   const otPct=tA>0?Math.round(((tA-tM)/tA)*1000)/10:null;
   const avgSafety=sfVals.length?Math.round(sfVals.reduce((a,b)=>a+b,0)/sfVals.length*100)/100:null;
-  return{tA,tM,tLate,tOut,tFin,tRun,tLocs,tMR,otPct,avgSafety,revTotal,daysWithData,bizDays,totalSpoils:tSpoils,totalShrink:tShrink};
-}
-
-// Build a per-day baseline for a branch by averaging the prior N same-type periods.
-// All per-day figures use BUSINESS DAYS as the denominator.
-// For monthly periods, prior months are capped to the same NUMBER OF BUSINESS DAYS
-// as the current period — so June (7 biz days) compares against May 1–9, Apr 1–9, etc.
-// with exactly 7 business days each. Calendar-day matching was wrong because weekends
-// shift the biz-day count unpredictably.
-function getBranchBaseline(bid,period,refDate,lookback=4,currentBizDays=null){
-  const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
-  const samples=[];
-  for(let i=1;i<=lookback;i++){
-    const d=new Date(refDate+'T12:00:00');
-    if(period==='daily')d.setDate(d.getDate()-i*7);
-    else if(period==='weekly')d.setDate(d.getDate()-i*7);
-    else if(period==='monthly')d.setMonth(d.getMonth()-i);
-    const pk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    let pdates=getRollupPeriodDates(period,pk);
-    // For monthly: walk the prior month forward day-by-day and stop once we've
-    // accumulated the same number of business days as the current period.
-    if(period==='monthly'&&currentBizDays!==null&&currentBizDays>0){
-      const[py,pm]=pk.split('-');
-      let bizCount=0;let capDate=null;
-      const dim=new Date(+py,+pm,0).getDate();
-      for(let dd=1;dd<=dim;dd++){
-        const dk2=`${py}-${pm}-${String(dd).padStart(2,'0')}`;
-        if(isWorkDay(+py,+pm,dd)){
-          bizCount++;
-          if(bizCount===currentBizDays){capDate=dk2;break;}
-        }
-      }
-      if(capDate)pdates=pdates.filter(dk2=>dk2<=capDate);
-    }
-    const hasData=pdates.some(dk2=>brf[dk2]&&brf[dk2].routes);
-    if(!hasData)continue;
-    let pA=0,pM=0,pSpoils=0,pShrink=0,pRev=0,pMR=0,pBizDays=0;
-    pdates.forEach(dk2=>{
-      const b=brf[dk2];if(!b||!b.routes)return;
-      const[y2,mo2,dd2]=dk2.split('-').map(Number);
-      if(!isWorkDay(y2,mo2,dd2))return;
-      pBizDays++;
-      const s=bStats(b);
-      pA+=s.totalAssets;pM+=s.totalMissed;pSpoils+=s.totalSpoils;
-      pShrink+=Math.abs(s.totalShrink);pMR+=s.totalMissedRestocks||0;
-      pRev+=getBranchDayRevenue(bid,dk2);
-    });
-    if(pBizDays>0)samples.push({days:pBizDays,tA:pA,tM:pM,spoils:pSpoils,shrink:pShrink,rev:pRev,mr:pMR});
-  }
-  if(!samples.length)return null;
-  const n=samples.length;
-  const avg=f=>samples.reduce((a,s)=>a+f(s),0)/n;
-  const totA=samples.reduce((a,s)=>a+s.tA,0);
-  const totM=samples.reduce((a,s)=>a+s.tM,0);
-  // For spoils/shrink, only average over samples that actually have data > $0.
-  // Months where nobody filled in spoils shouldn't dilute the baseline to near-zero.
-  const spoilsSamples=samples.filter(s=>s.spoils>0);
-  const shrinkSamples=samples.filter(s=>s.shrink>0);
-  const avgOver=(arr,f)=>arr.length?arr.reduce((a,s)=>a+f(s),0)/arr.length:0;
-  return{
-    missPerDay:avg(s=>s.tM/Math.max(s.days,1)),
-    missRate:avg(s=>s.tA>0?s.tM/s.tA:0),
-    avgOtPct:totA>0?Math.round(((totA-totM)/totA)*1000)/10:null,
-    spoilsPerDay:avgOver(spoilsSamples,s=>s.spoils/Math.max(s.days,1)),
-    spoilsSampleCount:spoilsSamples.length,
-    shrinkPerDay:avgOver(shrinkSamples,s=>s.shrink/Math.max(s.days,1)),
-    shrinkSampleCount:shrinkSamples.length,
-    revPerDay:avg(s=>s.rev/Math.max(s.days,1)),
-    mrPerDay:avg(s=>s.mr/Math.max(s.days,1)),
-    sampleCount:n,
-  };
-}
-
-// Derives a single plain-language "key insight" for a branch card in the rollup.
-// Rather than a priority waterfall that always returns the first hit, we SCORE every
-// signal and surface the highest-scoring one — so each branch gets its actual standout.
-// `vari` is the budget variance % (or null). `baseline` is from getBranchBaseline() or null.
-function branchInsight(s,period,vari,baseline,isPartial){
-  const span=period==='daily'?'today':period==='weekly'?'this week':'this month';
-  // "through yesterday" qualifier shown when we've excluded today from the window
-  const thru=isPartial?' (through yesterday)':'';
-  const days=Math.max(s.bizDays||s.daysWithData,1); // business days only for per-day rates
-  const dev=(cur,base)=>base>0?Math.round((cur-base)/base*100):null;
-
-  const curSpoilsPerDay=s.totalSpoils!=null?s.totalSpoils/days:0;
-  const curShrinkPerDay=s.totalShrink!=null?Math.abs(s.totalShrink)/days:0;
-  const curRevPerDay=s.revTotal>0?s.revTotal/days:0;
-  const curMRPerDay=s.tMR/days;
-
-  // Require at least 2 prior months with actual spoils/shrink data before comparing.
-  const baselineOk=baseline&&baseline.sampleCount>=2;
-  const spoilsDev=baselineOk&&(baseline.spoilsSampleCount||0)>=2&&baseline.spoilsPerDay>50?dev(curSpoilsPerDay,baseline.spoilsPerDay):null;
-  const shrinkDev=baselineOk&&(baseline.shrinkSampleCount||0)>=2&&baseline.shrinkPerDay>50?dev(curShrinkPerDay,baseline.shrinkPerDay):null;
-  const revDev=baselineOk&&baseline.revPerDay>0?dev(curRevPerDay,baseline.revPerDay):null;
-  const mrDev=baselineOk&&baseline.mrPerDay>0.5?dev(curMRPerDay,baseline.mrPerDay):null;
-
-  // Build a scored candidate list — each has { score, level, icon, text }.
-  // Higher score = more actionable / severe. We return the winner.
-  const candidates=[];
-  const add=(score,level,icon,text)=>candidates.push({score,level,icon,text});
-
-  // ── Safety (absolute — never relative, always the highest stakes) ──
-  if(s.avgSafety!==null){
-    if(s.avgSafety<80) add(100,'danger','ti-shield-off',
-      `Safety averaging ${s.avgSafety} ${span} — dangerously below 85. Immediate coaching needed.`);
-    else if(s.avgSafety<85) add(80,'danger','ti-shield-off',
-      `Safety averaging ${s.avgSafety} ${span} — below the 85 threshold. Coach drivers before it compounds.`);
-    else if(s.avgSafety>=98) add(15,'ok','ti-shield-check',
-      `Safety at ${s.avgSafety} ${span} — best-in-class.`);
-  }
-
-  // ── Uncovered routes (no relief) ──
-  if(s.tOut>0) add(90,'danger','ti-user-x',
-    `${s.tOut} route${s.tOut===1?'':'s'} ran uncovered ${span} with no relief assigned.`);
-
-  // ── Waste: spoils % change vs baseline (business-day baseline, same methodology as on-time) ──
-  // Only fire when baseline is meaningful (>$10/day) so noise days don't distort.
-  // Score based on severity of the percentage increase.
-  if(spoilsDev!==null&&baseline.spoilsPerDay>10){
-    if(spoilsDev>=100) add(75,'danger','ti-trash',
-      `Spoils up ${spoilsDev}% vs baseline ${span} ($${Math.round(curSpoilsPerDay)}/day vs $${Math.round(baseline.spoilsPerDay)}/day normal). Check product rotation and order quantities.`);
-    else if(spoilsDev>=50) add(50,'warn','ti-trash',
-      `Spoils up ${spoilsDev}% vs baseline ${span} ($${Math.round(curSpoilsPerDay)}/day vs $${Math.round(baseline.spoilsPerDay)}/day normal).`);
-    else if(spoilsDev>=25) add(25,'warn','ti-trash',
-      `Spoils slightly elevated — up ${spoilsDev}% vs baseline ${span}.`);
-  }
-
-  // ── Waste: shrink % change vs baseline ──
-  if(shrinkDev!==null&&baseline.shrinkPerDay>10){
-    if(shrinkDev>=100) add(72,'danger','ti-alert-triangle',
-      `Shrink up ${shrinkDev}% vs baseline ${span} ($${Math.round(curShrinkPerDay)}/day vs $${Math.round(baseline.shrinkPerDay)}/day normal). Review routes for discrepancies.`);
-    else if(shrinkDev>=50) add(48,'warn','ti-alert-triangle',
-      `Shrink up ${shrinkDev}% vs baseline ${span} ($${Math.round(curShrinkPerDay)}/day vs $${Math.round(baseline.shrinkPerDay)}/day normal).`);
-    else if(shrinkDev>=25) add(23,'warn','ti-alert-triangle',
-      `Shrink slightly elevated — up ${shrinkDev}% vs baseline ${span}.`);
-  }
-
-  // ── On-time % variance vs baseline (absolute drop in percentage points) ──
-  // Use point-drop (not % change) so "98% → 91%" reads as "-7 pts" not "7% worse"
-  const curOt=s.otPct;  // already a percentage like 97.2
-  const baseOt=baseline?baseline.avgOtPct:null;
-  const otDrop=curOt!==null&&baseOt!==null?Math.round((curOt-baseOt)*10)/10:null; // negative = worse
-  if(curOt!==null){
-    if(otDrop!==null&&otDrop<=-5) add(70,'danger','ti-trending-down',
-      `On-time ${span} is ${curOt}% — ${Math.abs(otDrop)} pts below the recent ${baseOt}% baseline. Something's off, check route loads and start times.`);
-    else if(otDrop!==null&&otDrop<=-2) add(40,'warn','ti-alert-circle',
-      `On-time slipped to ${curOt}% ${span} (baseline ${baseOt}%). Small drop but worth watching.`);
-    else if(otDrop===null&&curOt<95) add(50,'warn','ti-alert-circle',
-      `On-time at ${curOt}% ${span} — below the 95% target. No baseline yet to gauge trend.`);
-    else if(otDrop===null&&curOt<90) add(65,'danger','ti-alert-circle',
-      `On-time at ${curOt}% ${span} — well below 95% target. Investigate route loads and attendance.`);
-    else if(otDrop!==null&&otDrop>=3&&curOt>=97) add(18,'ok','ti-trending-up',
-      `On-time up ${otDrop} pts vs baseline — ${curOt}% ${span}.`);
-  }
-
-  // ── Revenue vs baseline — only meaningful with ≥3 completed days (avoids Mon/Tue false alarms) ──
-  const revCmpOk=period==='daily'||(days>=3);
-  if(revDev!==null&&curRevPerDay>0&&revCmpOk){
-    if(revDev<=-20) add(65,'danger','ti-trending-down',
-      `Revenue ${Math.abs(revDev)}% below recent baseline${thru} (${fmtMoneyAbbr(s.revTotal)} vs expected ~${fmtMoneyAbbr(baseline.revPerDay*days)}). Dig into which routes are light.`);
-    else if(revDev<=-10) add(40,'warn','ti-trending-down',
-      `Revenue tracking ${Math.abs(revDev)}% under recent baseline${thru}.`);
-    else if(revDev>=15) add(20,'ok','ti-trending-up',
-      `Revenue ${revDev}% above recent baseline${thru} (${fmtMoneyAbbr(s.revTotal)}).`);
-  }
-
-  // ── Budget variance — same ≥3 day gate for weekly/monthly periods ──
-  if(vari!==null&&(period==='daily'||days>=3)){
-    if(vari<=-15&&revDev===null) add(45,'warn','ti-trending-down',
-      `Revenue ${Math.abs(vari)}% under budget target${thru}. No prior baseline to confirm if this is new.`);
-    else if(vari<=-10) add(20,'warn','ti-trending-down',
-      `${Math.abs(vari)}% under budget${thru}${revDev!==null&&revDev<-5?` and ${Math.abs(revDev)}% below baseline`:''}.`);
-    else if(vari>=15) add(18,'ok','ti-trophy',
-      `${vari}% over budget target${thru}${revDev!==null&&revDev>=10?` and ${revDev}% above baseline`:''}.`);
-  }
-
-  // ── Missed restocks ──
-  if(mrDev!==null&&mrDev>=60&&curMRPerDay>=1) add(25,'warn','ti-package-off',
-    `Missed restocks ${mrDev}% above normal ${span}. Empty machines quietly bleed revenue.`);
-  else if(mrDev===null&&s.tMR>=4) add(22,'warn','ti-package-off',
-    `${s.tMR} missed restocks ${span} — empty machines lose sales even on serviced routes.`);
-
-  // ── Late starts (lowest score — only wins if nothing else stands out) ──
-  if(s.tLate>0) add(10,'warn','ti-clock-exclamation',
-    `${s.tLate} late start${s.tLate===1?'':'s'} ${span}. Service held${s.otPct!==null?' at '+s.otPct+'%':''}, but watch the trend.`);
-
-  // ── All clean: surface the best positive ──
-  if(!candidates.some(c=>c.level!=='ok')){
-    if(s.otPct!==null&&s.otPct>=98&&s.tM===0) add(12,'ok','ti-circle-check',
-      `Zero misses ${span} at ${s.otPct}% on-time${baseline?' — consistent with recent norms':''}.`);
-    if(s.daysWithData>0&&!candidates.length) add(5,'ok','ti-circle-check',
-      `No flags ${span} — service, safety, and attendance all clean.`);
-  }
-
-  if(!candidates.length)return null;
-  // Return highest-scored candidate
-  candidates.sort((a,b)=>b.score-a.score);
-  return candidates[0];
+  return{tA,tM,tLate,tOut,tFin,tRun,tLocs,tMR,otPct,avgSafety,revTotal,daysWithData};
 }
 
 function renderRollup(){
@@ -2184,20 +1907,11 @@ function renderRollup(){
   const dates=getRollupPeriodDates(period,dk);
   const isCurrentPeriod=dates.includes(todayKey());
   const btnStyle='padding:6px 10px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:16px;min-height:36px';
-
-  // For insight calculations, exclude today — routes are still running so revenue,
-  // spoils, and missed counts are incomplete and will skew every comparison.
-  // Daily view looking at today is the exception: we show what we have but flag it.
-  const yk=(()=>{const y=new Date();y.setDate(y.getDate()-1);return y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');})();
-  const insightDates=period==='daily'?dates:dates.filter(d=>d<=yk);
-  const insightIsPartial=isCurrentPeriod&&period!=='daily'&&insightDates.length<dates.length;
   const branchStats=BRANCH_IDS.map(bid=>{
     const stats=aggregatePeriodStats(bid,dates);
-    // Separate stats for insights — capped at yesterday so today's in-flight data doesn't skew
-    const iStats=insightDates.length>0?aggregatePeriodStats(bid,insightDates):stats;
     const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
     const todayB=brf[dk];
-    return{bid,stats,iStats,checkInStatus:todayB&&todayB.checkInStatus||'not_started',hasData:stats.daysWithData>0};
+    return{bid,stats,checkInStatus:todayB&&todayB.checkInStatus||'not_started',hasData:stats.daysWithData>0};
   });
   const hasAny=branchStats.some(x=>x.hasData);
   const act=branchStats.filter(x=>x.hasData);
@@ -2244,12 +1958,12 @@ function renderRollup(){
     </div>
   </div>
   <span class="section-lbl">By Branch</span>
-  ${branchStats.map(({bid,stats:s,iStats,checkInStatus,hasData})=>{
+  ${branchStats.map(({bid,stats:s,checkInStatus,hasData})=>{
     const isActive=bid===st.branch;
     const cardStyle='cursor:pointer;'+(isActive?'border-color:var(--brand);':'')+'margin-bottom:10px';
     if(!hasData)return`<div class="plan-card" style="${cardStyle}" onclick="switchBranch('${bid}');switchTab('today')"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;font-weight:500;color:${isActive?'var(--brand)':'inherit'}">${BRANCHES[bid].label}</span><span style="font-size:11px;color:var(--text-3)">No data</span></div></div>`;
     const mk2=monthKey(dk);const budget=(st.budgets[bid]&&st.budgets[bid][mk2])||0;
-    let budgetLine='';let vari=null;
+    let budgetLine='';
     if(budget>0&&s.revTotal>0){
       const[y2,m2]=mk2.split('-');
       const twyd=new Date(dk+'T12:00:00');
@@ -2257,14 +1971,8 @@ function renderRollup(){
       const dailyTgt=budget/workDaysInMonth(+y2,+m2);
       const wkDays=dates.filter(d2=>isWorkDay(+d2.split('-')[0],+d2.split('-')[1],+d2.split('-')[2])).length;
       const periodTgt=period==='daily'?dailyTgt:period==='weekly'?dailyTgt*wkDays:dailyTgt*wd;
-      if(periodTgt>0){vari=Math.round((s.revTotal-periodTgt)/periodTgt*100);budgetLine=`<div style="font-size:11px;margin-top:6px;color:${vari>=0?'var(--ok-text)':'var(--danger-text)'};font-weight:500">${vari>=0?'▲':'▼'} ${Math.abs(vari)}% vs budget target</div>`;}
+      if(periodTgt>0){const vari=Math.round((s.revTotal-periodTgt)/periodTgt*100);budgetLine=`<div style="font-size:11px;margin-top:6px;color:${vari>=0?'var(--ok-text)':'var(--danger-text)'};font-weight:500">${vari>=0?'▲':'▼'} ${Math.abs(vari)}% vs budget target</div>`;}
     }
-    const ins=branchInsight(iStats,period,vari,getBranchBaseline(bid,period,dk,2,iStats.bizDays||null),insightIsPartial);
-    const insColors={danger:['var(--danger-bg)','var(--danger-border)','var(--danger-text)'],warn:['var(--warn-bg)','var(--warn-border)','var(--warn-text)'],ok:['var(--ok-bg)','var(--ok-border)','var(--ok-text)']};
-    const insLine=ins?(()=>{const[bg,bd,tx]=insColors[ins.level];return`<div style="margin-top:10px;background:${bg};border:0.5px solid ${bd};border-radius:var(--radius-md);padding:8px 10px;display:flex;gap:8px;align-items:flex-start">
-      <i class="ti ${ins.icon}" style="font-size:15px;color:${tx};flex-shrink:0;margin-top:1px"></i>
-      <span style="font-size:12px;line-height:1.45;color:${tx}"><strong style="text-transform:uppercase;letter-spacing:.04em;font-size:10px;display:block;margin-bottom:1px;opacity:.85">Key insight</strong>${ins.text}</span>
-    </div>`;})():'';
     return`<div class="plan-card" style="${cardStyle}" onclick="switchBranch('${bid}');switchTab('today')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <span style="font-size:14px;font-weight:600;color:${isActive?'var(--brand)':'inherit'}">${BRANCHES[bid].label}</span>
@@ -2277,7 +1985,6 @@ function renderRollup(){
         <div class="kpi"><div class="kpi-lbl">Missed</div><div class="kpi-val" style="font-size:18px;color:${s.tM===0?'var(--ok-text)':s.tM<=2?'var(--warn-text)':'var(--danger-text)'}"> ${s.tM}</div></div>
       </div>
       ${budgetLine}
-      ${insLine}
     </div>`;
   }).join('')}
   `}
@@ -2831,7 +2538,6 @@ function render(){
 }
 
 function drawBudgetChart(){
-  destroyCharts();
   const bid=st.branch;const mk=st.budgetMonth||monthKey(todayKey());
   const[y,m]=mk.split("-");
   const budgetCats=getBudgetCats(bid,mk);
@@ -2876,7 +2582,7 @@ function drawBudgetChart(){
   // Chart 1 — Daily Revenue vs Target (bars + target line)
   const ctx1=document.getElementById("chart-budget-daily");
   if(ctx1){
-    mkChart(ctx1,{
+    new Chart(ctx1,{
       type:"bar",
       data:{labels,datasets:[
         {type:"bar",data:revData,backgroundColor:varColors,borderRadius:3,order:2},
@@ -2894,7 +2600,7 @@ function drawBudgetChart(){
   // Chart 2 — Cumulative MTD Variance (single line, colored by sign)
   const ctx2=document.getElementById("chart-budget-cumulative");
   if(ctx2){
-    mkChart(ctx2,{
+    new Chart(ctx2,{
       type:"line",
       data:{labels,datasets:[
         {
@@ -2922,7 +2628,7 @@ function drawBudgetChart(){
   // Chart 3 — Daily Variance %
   const ctx3=document.getElementById("chart-budget-variance");
   if(ctx3){
-    mkChart(ctx3,{
+    new Chart(ctx3,{
       type:"bar",
       data:{labels,datasets:[{data:varData,backgroundColor:varColors,borderRadius:3}]},
       options:{...commonOpts,
@@ -3420,11 +3126,6 @@ document.addEventListener('keydown',e=>{
     }
   }
 });
-
-// Flush any pending Firestore write before the app is hidden or closed,
-// so the last edit isn't lost inside the 700ms debounce window.
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushWrite();});
-window.addEventListener('pagehide',()=>{flushWrite();});
 
 loadLocal();loadBudgets();loadNotifSettings();render();initFirebase();
 </script>
