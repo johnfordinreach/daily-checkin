@@ -1887,18 +1887,87 @@ function adjRollupByPeriod(n){
 }
 function aggregatePeriodStats(bid,dates){
   const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
-  let tA=0,tM=0,tLate=0,tOut=0,tFin=0,tRun=0,tLocs=0,tMR=0,sfVals=[],revTotal=0,daysWithData=0;
-  dates.forEach(dk=>{
+  const tk=todayKey();
+  // Exclude today — partial data skews everything
+  const completedDates=dates.filter(d=>d<tk);
+  let tA=0,tM=0,tLate=0,tOut=0,tFin=0,tRun=0,tLocs=0,tMR=0,sfVals=[],revTotal=0,daysWithData=0,tSpoils=0,tShrink=0;
+  completedDates.forEach(dk=>{
     const b=brf[dk];if(!b||!b.routes)return;
     daysWithData++;const s=bStats(b);
     tA+=s.totalAssets;tM+=s.totalMissed;tLate+=s.late;tOut+=s.out;
     tFin+=s.finished;tRun+=s.runningCount;tLocs+=s.totalLocs;tMR+=s.totalMissedRestocks||0;
+    tSpoils+=s.totalSpoils||0;tShrink+=s.totalShrink||0;
     if(s.avgSafety!==null)sfVals.push(s.avgSafety);
     if(b.revenue||b.routes)revTotal+=getBranchDayRevenue(bid,dk);
   });
   const otPct=tA>0?Math.round(((tA-tM)/tA)*1000)/10:null;
   const avgSafety=sfVals.length?Math.round(sfVals.reduce((a,b)=>a+b,0)/sfVals.length*100)/100:null;
-  return{tA,tM,tLate,tOut,tFin,tRun,tLocs,tMR,otPct,avgSafety,revTotal,daysWithData};
+  return{tA,tM,tLate,tOut,tFin,tRun,tLocs,tMR,otPct,avgSafety,revTotal,daysWithData,tSpoils,tShrink};
+}
+
+function getPrevPeriodDates(period,dk){
+  // Returns dates for the previous equivalent period
+  const d=new Date(dk+'T12:00:00');
+  if(period==='daily'){
+    d.setDate(d.getDate()-1);
+    return[d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')];
+  }
+  if(period==='weekly'){
+    // Previous 7 days before the current week
+    const dates=[];
+    const cur=new Date(dk+'T12:00:00');
+    const dow=cur.getDay();const mon=new Date(cur);mon.setDate(cur.getDate()-dow+1-(dow===0?6:0));
+    const prevMon=new Date(mon);prevMon.setDate(mon.getDate()-7);
+    for(let i=0;i<7;i++){const p=new Date(prevMon);p.setDate(prevMon.getDate()+i);dates.push(p.getFullYear()+'-'+String(p.getMonth()+1).padStart(2,'0')+'-'+String(p.getDate()).padStart(2,'0'));}
+    return dates;
+  }
+  if(period==='monthly'){
+    const[y,m]=dk.split('-');
+    const pm=new Date(+y,+m-2,1);
+    const pmk=pm.getFullYear()+'-'+String(pm.getMonth()+1).padStart(2,'0');
+    const dim=new Date(pm.getFullYear(),pm.getMonth()+1,0).getDate();
+    return Array.from({length:dim},(_,i)=>pmk+'-'+String(i+1).padStart(2,'0'));
+  }
+  return[];
+}
+
+function branchInsight(bid,s,period){
+  // Returns a single plain-language key insight for the branch
+  const flags=[];
+
+  // Safety issues
+  if(s.avgSafety!==null&&s.avgSafety<85)flags.push({level:'danger',text:`Avg safety ${s.avgSafety} — below 85 threshold`});
+  else if(s.minSafety!==null&&s.minSafety<80)flags.push({level:'warn',text:`Lowest safety score was ${s.minSafety}`});
+
+  // On-time
+  if(s.otPct!==null&&s.otPct<90)flags.push({level:'danger',text:`On-time delivery at ${s.otPct}%`});
+  else if(s.otPct!==null&&s.otPct<95)flags.push({level:'warn',text:`On-time delivery at ${s.otPct}%`});
+
+  // Missed services
+  if(s.tM>5)flags.push({level:'danger',text:`${s.tM} missed service${s.tM===1?'':'s'} this ${period==='daily'?'day':period}`});
+  else if(s.tM>0)flags.push({level:'warn',text:`${s.tM} missed service${s.tM===1?'':'s'} this ${period==='daily'?'day':period}`});
+
+  // Missed restocks
+  if(s.tMR>5)flags.push({level:'warn',text:`${s.tMR} missed restock${s.tMR===1?'':'s'}`});
+
+  // Spoils
+  if(s.tSpoils>0&&s.revTotal>0){const pct=s.tSpoils/s.revTotal*100;if(pct>2)flags.push({level:'warn',text:`Spoils at ${pct.toFixed(1)}% of revenue`});}
+
+  // Shrink
+  if(s.tShrink<0&&s.revTotal>0){const pct=Math.abs(s.tShrink)/s.revTotal*100;if(pct>1.5)flags.push({level:'danger',text:`Negative shrink ${pct.toFixed(1)}% of revenue — verify immediately`});}
+  else if(s.tShrink>0&&s.revTotal>0){const pct=s.tShrink/s.revTotal*100;if(pct>2)flags.push({level:'warn',text:`Shrink at ${pct.toFixed(1)}% of revenue`});}
+
+  // Absences
+  if(s.tOut>2)flags.push({level:'warn',text:`${s.tOut} driver${s.tOut===1?'':'s'} out`});
+
+  // Clean run
+  if(flags.length===0&&s.tM===0&&s.otPct!==null&&s.otPct===100)return{level:'ok',text:'Clean — 100% on-time, zero missed services'};
+  if(flags.length===0&&s.tM===0&&s.otPct!==null&&s.otPct>=95)return{level:'ok',text:`On track — ${s.otPct}% on-time, no missed services`};
+  if(flags.length===0)return null;
+
+  // Return worst flag first
+  const danger=flags.find(f=>f.level==='danger');
+  return danger||flags[0];
 }
 
 function renderRollup(){
@@ -1909,9 +1978,11 @@ function renderRollup(){
   const btnStyle='padding:6px 10px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:16px;min-height:36px';
   const branchStats=BRANCH_IDS.map(bid=>{
     const stats=aggregatePeriodStats(bid,dates);
+    const prevDates=getPrevPeriodDates(period,dk);
+    const prevStats=aggregatePeriodStats(bid,prevDates);
     const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
     const todayB=brf[dk];
-    return{bid,stats,checkInStatus:todayB&&todayB.checkInStatus||'not_started',hasData:stats.daysWithData>0};
+    return{bid,stats,prevStats,checkInStatus:todayB&&todayB.checkInStatus||'not_started',hasData:stats.daysWithData>0};
   });
   const hasAny=branchStats.some(x=>x.hasData);
   const act=branchStats.filter(x=>x.hasData);
@@ -1958,7 +2029,7 @@ function renderRollup(){
     </div>
   </div>
   <span class="section-lbl">By Branch</span>
-  ${branchStats.map(({bid,stats:s,checkInStatus,hasData})=>{
+  ${branchStats.map(({bid,stats:s,prevStats:p,checkInStatus,hasData})=>{
     const isActive=bid===st.branch;
     const cardStyle='cursor:pointer;'+(isActive?'border-color:var(--brand);':'')+'margin-bottom:10px';
     if(!hasData)return`<div class="plan-card" style="${cardStyle}" onclick="switchBranch('${bid}');switchTab('today')"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;font-weight:500;color:${isActive?'var(--brand)':'inherit'}">${BRANCHES[bid].label}</span><span style="font-size:11px;color:var(--text-3)">No data</span></div></div>`;
@@ -1984,7 +2055,19 @@ function renderRollup(){
         <div class="kpi"><div class="kpi-lbl">Revenue</div><div class="kpi-val" style="font-size:${s.revTotal>0?'16':'18'}px;color:${s.revTotal>0?'var(--brand)':'var(--text-2)'}"> ${s.revTotal>0?fmtMoneyAbbr(s.revTotal):'—'}</div></div>
         <div class="kpi"><div class="kpi-lbl">Missed</div><div class="kpi-val" style="font-size:18px;color:${s.tM===0?'var(--ok-text)':s.tM<=2?'var(--warn-text)':'var(--danger-text)'}"> ${s.tM}</div></div>
       </div>
+      ${(()=>{
+        // % variance vs previous period for revenue, spoils, shrink
+        const varItems=[];
+        if(s.revTotal>0&&p.revTotal>0){const v=Math.round((s.revTotal-p.revTotal)/p.revTotal*100);varItems.push(`<span style="color:${v>=0?'var(--ok-text)':'var(--danger-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% rev</span>`);}
+        if(s.tSpoils>0&&p.tSpoils>0){const v=Math.round((s.tSpoils-p.tSpoils)/p.tSpoils*100);varItems.push(`<span style="color:${v<=0?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% spoils</span>`);}
+        else if(s.tSpoils>0&&p.revTotal>0){const pct=Math.round(s.tSpoils/s.revTotal*1000)/10;varItems.push(`<span style="color:var(--text-2)">${pct}% spoils/rev</span>`);}
+        if(s.tShrink!==0&&p.tShrink!==0){const v=Math.round((Math.abs(s.tShrink)-Math.abs(p.tShrink))/Math.abs(p.tShrink)*100);varItems.push(`<span style="color:${v<=0?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% shrink</span>`);}
+        else if(s.tShrink!==0&&s.revTotal>0){const pct=Math.round(Math.abs(s.tShrink)/s.revTotal*1000)/10;varItems.push(`<span style="color:${s.tShrink<0?'var(--danger-text)':'var(--text-2)'}">${s.tShrink<0?'⚠ neg ':''}${pct}% shrink/rev</span>`);}
+        if(!varItems.length)return'';
+        return`<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">${varItems.join('<span style="color:var(--text-3)"> · </span>')}<span style="margin-left:auto;font-size:10px;color:var(--text-3)">vs prev ${period}</span></div>`;
+      })()}
       ${budgetLine}
+      ${(()=>{const ins=branchInsight(bid,s,period);if(!ins)return'';const col=ins.level==='danger'?'var(--danger-text)':ins.level==='warn'?'var(--warn-text)':'var(--ok-text)';const bg=ins.level==='danger'?'var(--danger-bg)':ins.level==='warn'?'var(--warn-bg)':'var(--ok-bg)';const icon=ins.level==='danger'?'ti-alert-triangle':ins.level==='warn'?'ti-alert-circle':'ti-circle-check';return`<div style="margin-top:8px;padding:6px 10px;background:${bg};border-radius:var(--radius-md);font-size:12px;color:${col};display:flex;align-items:center;gap:6px"><i class="ti ${icon}" style="font-size:13px;flex-shrink:0"></i>${ins.text}</div>`;})()}
     </div>`;
   }).join('')}
   `}
