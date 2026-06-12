@@ -2026,11 +2026,31 @@ function renderRollup(){
       ${(()=>{
         // % variance vs previous period for revenue, spoils, shrink
         const varItems=[];
-        if(s.revTotal>0&&p.revTotal>0){const v=Math.round((s.revTotal-p.revTotal)/p.revTotal*100);varItems.push(`<span style="color:${v>=0?'var(--ok-text)':'var(--danger-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% rev</span>`);}
-        if(s.tSpoils>0&&p.tSpoils>0){const v=Math.round((s.tSpoils-p.tSpoils)/p.tSpoils*100);varItems.push(`<span style="color:${v<=0?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% spoils</span>`);}
-        else if(s.tSpoils>0&&p.revTotal>0){const pct=Math.round(s.tSpoils/s.revTotal*1000)/10;varItems.push(`<span style="color:var(--text-2)">${pct}% spoils/rev</span>`);}
-        if(s.tShrink!==0&&p.tShrink!==0){const v=Math.round((Math.abs(s.tShrink)-Math.abs(p.tShrink))/Math.abs(p.tShrink)*100);varItems.push(`<span style="color:${v<=0?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% shrink</span>`);}
-        else if(s.tShrink!==0&&s.revTotal>0){const pct=Math.round(Math.abs(s.tShrink)/s.revTotal*1000)/10;varItems.push(`<span style="color:${s.tShrink<0?'var(--danger-text)':'var(--text-2)'}">${s.tShrink<0?'⚠ neg ':''}${pct}% shrink/rev</span>`);}
+        // Revenue: % change in dollars (up = good)
+        if(s.revTotal>0&&p.revTotal>0){
+          const v=Math.round((s.revTotal-p.revTotal)/p.revTotal*1000)/10;
+          varItems.push(`<span style="color:${v>=0?'var(--ok-text)':'var(--danger-text)'};font-weight:600">${v>=0?'▲':'▼'}${Math.abs(v)}% rev</span>`);
+        }
+        // Spoils: % of revenue this period vs last — lower is better, show pp difference
+        if(s.revTotal>0&&p.revTotal>0){
+          const cur=s.tSpoils/s.revTotal*100;
+          const prev=p.tSpoils/p.revTotal*100;
+          if(cur>0||prev>0){
+            const diff=Math.round((cur-prev)*10)/10;
+            const better=diff<=0;
+            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${diff>=0?'▲':'▼'}${Math.abs(diff)}pp spoils</span>`);
+          }
+        }
+        // Shrink: abs(%) of revenue — closer to 0 is better, show pp difference
+        if(s.revTotal>0&&p.revTotal>0){
+          const cur=Math.abs(s.tShrink)/s.revTotal*100;
+          const prev=Math.abs(p.tShrink)/p.revTotal*100;
+          if(cur>0||prev>0){
+            const diff=Math.round((cur-prev)*10)/10;
+            const better=diff<=0;
+            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${diff>=0?'▲':'▼'}${Math.abs(diff)}pp shrink</span>`);
+          }
+        }
         if(!varItems.length)return'';
         return`<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">${varItems.join('<span style="color:var(--text-3)"> · </span>')}<span style="margin-left:auto;font-size:10px;color:var(--text-3)">vs same ${period==='monthly'?'days last month':period==='weekly'?'days last week':'yesterday'}</span></div>`;
       })()}
