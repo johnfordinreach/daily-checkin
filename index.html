@@ -1496,7 +1496,8 @@ function renderEntry(){
   const inProg=b.routes.filter(r=>r.routeStatus==="in_progress").length;
   const notStart=b.routes.filter(r=>r.routeStatus==="not_started"&&r.status!=="off").length;
   const total=b.routes.filter(r=>r.status!=="off").length;
-  return`<div class="app-header"><div style="display:flex;align-items:center;gap:10px"><img src="icon.png" class="app-logo" alt=""><div><div class="app-title">${activeBranch().label} Daily Check-in</div><div class="app-sub">${isToday?"Today":fmtDN(sk)+", "+fmtS(sk)} ${syncPill()}</div></div></div>
+  const migrationBanner=`<div style="background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-lg);padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--warn-text);line-height:1.6;display:flex;align-items:flex-start;gap:8px"><i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0;margin-top:1px"></i><span>Please migrate to the new link at <a href="https://inreach-checkin.github.io/daily-checkin/" target="_blank" style="color:var(--warn-text);font-weight:700;text-decoration:underline">https://inreach-checkin.github.io/daily-checkin/</a></span></div>`;
+  return`${migrationBanner}<div class="app-header"><div style="display:flex;align-items:center;gap:10px"><img src="icon.png" class="app-logo" alt=""><div><div class="app-title">${activeBranch().label} Daily Check-in</div><div class="app-sub">${isToday?"Today":fmtDN(sk)+", "+fmtS(sk)} ${syncPill()}</div></div></div>
   <div style="display:flex;align-items:center;gap:4px">
     <button onclick="prevDay()" style="padding:6px 10px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:16px;min-height:36px;display:flex;align-items:center;justify-content:center"><i class="ti ti-chevron-left" style="font-size:16px"></i></button>
     <span class="date-badge" style="font-weight:500;cursor:${!isToday?'pointer':''}" onclick="${!isToday?'jumpToday()':''}" title="${!isToday?'Tap to go to today':''}">${fmtS(sk)}${isToday?' ·  Today':''}</span>
@@ -1867,12 +1868,20 @@ function getRollupPeriodDates(period,refDate){
     const days=[];for(let i=1;i<=dim;i++){const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');if(dk<=tk)days.push(dk);}
     return days;
   }
+  if(period==='all'){
+    // All dates that have any briefing data across all branches
+    const allDates=new Set();
+    Object.values(st.branchBriefings).forEach(brf=>Object.keys(brf).forEach(dk=>{if(dk<=tk)allDates.add(dk);}));
+    Object.keys(st.briefings).forEach(dk=>{if(dk<=tk)allDates.add(dk);});
+    return Array.from(allDates).sort();
+  }
   return[];
 }
 function rollupPeriodLabel(period,refDate){
   if(period==='daily'){return refDate===todayKey()?'Today':fmtDN(refDate)+', '+fmtS(refDate);}
   if(period==='weekly'){const dates=getRollupPeriodDates('weekly',refDate);return'Week of '+fmtS(dates[0]);}
   if(period==='monthly'){const[y,m]=refDate.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});}
+  if(period==='all')return'All time';
   return'';
 }
 window.setRollupPeriod=function(p){st.rollupPeriod=p;render();};
@@ -1939,7 +1948,7 @@ function getPrevPeriodDates(period,currentDates){
 }
 
 function renderRollup(){
-  const period=st.rollupPeriod||'daily';
+  const period=st.rollupPeriod||'monthly';
   const dk=st.rollupDate||todayKey();
   const dates=getRollupPeriodDates(period,dk);
   const isCurrentPeriod=dates.includes(todayKey());
@@ -1966,15 +1975,16 @@ function renderRollup(){
     <button class="toggle-btn${period==='daily'?' t-on':''}" onclick="setRollupPeriod('daily')"><i class="ti ti-calendar-day" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Daily</button>
     <button class="toggle-btn${period==='weekly'?' t-on':''}" onclick="setRollupPeriod('weekly')"><i class="ti ti-calendar-week" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Weekly</button>
     <button class="toggle-btn${period==='monthly'?' t-on':''}" onclick="setRollupPeriod('monthly')"><i class="ti ti-calendar-month" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Monthly</button>
+    <button class="toggle-btn${period==='all'?' t-on':''}" onclick="setRollupPeriod('all')"><i class="ti ti-infinity" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>All</button>
   </div>`;
   const currentLabel=period==='daily'?fmtS(dk):period==='weekly'?'This week':'This month';
   return`<div class="app-header">
     <div><div class="app-title" style="color:var(--brand)">All Branches</div>
     <div class="app-sub">${rollupPeriodLabel(period,dk)} ${syncPill()}</div></div>
     <div style="display:flex;align-items:center;gap:4px">
-      <button onclick="adjRollupByPeriod(-1)" style="${btnStyle}"><i class="ti ti-chevron-left"></i></button>
+      ${period!=='all'?`<button onclick="adjRollupByPeriod(-1)" style="${btnStyle}"><i class="ti ti-chevron-left"></i></button>
       ${!isCurrentPeriod?`<button onclick="st.rollupDate=todayKey();render()" style="padding:6px 8px;border:0.5px solid var(--blue);border-radius:var(--radius-md);background:var(--info-bg);color:var(--info-text);font-size:11px;font-weight:500;white-space:nowrap;min-height:36px">Current</button>`:`<span class="date-badge">${currentLabel}</span>`}
-      <button onclick="adjRollupByPeriod(1)" style="${btnStyle}"><i class="ti ti-chevron-right"></i></button>
+      <button onclick="adjRollupByPeriod(1)" style="${btnStyle}"><i class="ti ti-chevron-right"></i></button>`:`<span class="date-badge">All time</span>`}
     </div>
   </div>
   ${periodToggle}
@@ -2033,25 +2043,27 @@ function renderRollup(){
         }
         // Spoils: % of revenue this period vs last — lower is better, show pp difference
         if(s.revTotal>0&&p.revTotal>0){
-          const cur=s.tSpoils/s.revTotal*100;
-          const prev=p.tSpoils/p.revTotal*100;
+          const cur=Math.round(s.tSpoils/s.revTotal*1000)/10;
+          const prev=Math.round(p.tSpoils/p.revTotal*1000)/10;
           if(cur>0||prev>0){
             const diff=Math.round((cur-prev)*10)/10;
             const better=diff<=0;
-            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${diff>=0?'▲':'▼'}${Math.abs(diff)}pp spoils</span>`);
+            const arrow=diff>=0?'▲':'▼';
+            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${cur}% spoils <span style="font-size:10px;opacity:.85">(${arrow}${Math.abs(diff)}pp)</span></span>`);
           }
         }
         // Shrink: abs(%) of revenue — closer to 0 is better, show pp difference
         if(s.revTotal>0&&p.revTotal>0){
-          const cur=Math.abs(s.tShrink)/s.revTotal*100;
-          const prev=Math.abs(p.tShrink)/p.revTotal*100;
+          const cur=Math.round(Math.abs(s.tShrink)/s.revTotal*1000)/10;
+          const prev=Math.round(Math.abs(p.tShrink)/p.revTotal*1000)/10;
           if(cur>0||prev>0){
             const diff=Math.round((cur-prev)*10)/10;
             const better=diff<=0;
-            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${diff>=0?'▲':'▼'}${Math.abs(diff)}pp shrink</span>`);
+            const arrow=diff>=0?'▲':'▼';
+            varItems.push(`<span style="color:${better?'var(--ok-text)':'var(--warn-text)'};font-weight:600">${cur}% shrink <span style="font-size:10px;opacity:.85">(${arrow}${Math.abs(diff)}pp)</span></span>`);
           }
         }
-        if(!varItems.length)return'';
+        if(!varItems.length||period==='all')return'';
         return`<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">${varItems.join('<span style="color:var(--text-3)"> · </span>')}<span style="margin-left:auto;font-size:10px;color:var(--text-3)">vs same ${period==='monthly'?'days last month':period==='weekly'?'days last week':'yesterday'}</span></div>`;
       })()}
       ${budgetLine}
