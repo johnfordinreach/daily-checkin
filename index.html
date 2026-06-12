@@ -981,7 +981,8 @@ window.importRevenueXL=function(){
       const wb=XLSX.read(ab,{type:"array",cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:""});
-      let updated=0,skipped=0,overflow=0;
+      let updated=0,skipped=0,overflow=0,failedWrites=0;
+      const skipReasons={noDate:0,noBranch:0};
       const affected=new Set();
       const affectedDates=new Map();
       function toDateKey(val){
@@ -994,10 +995,14 @@ window.importRevenueXL=function(){
       }
       rows.forEach(row=>{
         const dk=toDateKey(row["Date"]);
-        if(!dk){skipped++;return;}
+        if(!dk){skipped++;skipReasons.noDate++;return;}
         const branchCol=String(row["Branch"]||"").trim();
         let bid=st.branch;
-        if(branchCol){const found=Object.entries(BRANCHES).find(([id,b])=>b.label.toLowerCase()===branchCol.toLowerCase()||id===branchCol.toLowerCase());if(found)bid=found[0];}
+        if(branchCol){
+          const found=Object.entries(BRANCHES).find(([id,b])=>b.label.toLowerCase()===branchCol.toLowerCase()||id===branchCol.toLowerCase());
+          if(found)bid=found[0];
+          else{skipped++;skipReasons.noBranch++;if(Object.keys(skipReasons).length<10)skipReasons[branchCol]=(skipReasons[branchCol]||0)+1;return;}
+        }
         if(!st.branchBriefings[bid])st.branchBriefings[bid]={};
         const brf=st.branchBriefings[bid];
         // If no briefing exists for this date, create a minimal one to hold revenue
@@ -1066,18 +1071,27 @@ window.importRevenueXL=function(){
           const changedDates=affectedDates.get(bid)||new Set();
           changedDates.forEach(dk=>{
             const b=st.branchBriefings[bid][dk];
-            if(b){delete b._revImportCleared;allWrites.push(writeB(b,bid));}
+            if(b){delete b._revImportCleared;allWrites.push(writeB(b,bid).catch(e=>{failedWrites++;throw e;}));}
           });
         }
       });
       st.briefings=st.branchBriefings[st.branch]||{};
-      render();showToast("Revenue imported for "+updated+" day"+(updated!==1?"s":"")+(overflow?" · "+overflow+" unlisted routes stored":" ")+(skipped?" · "+skipped+" skipped":"")+" · syncing…");
+      const skipDetail=skipReasons.noDate>0?` (${skipReasons.noDate} bad date${skipReasons.noBranch>0?`, ${skipReasons.noBranch} unknown branch`:""})`
+        :skipReasons.noBranch>0?` (${skipReasons.noBranch} unknown branch)`:"";
+      render();showToast("Revenue imported for "+updated+" day"+(updated!==1?"s":"")+(overflow?" · "+overflow+" unlisted routes stored":"")+(skipped?" · "+skipped+" skipped"+skipDetail:"")+" · syncing…");
+      if(skipReasons.noBranch>0){
+        const unknowns=Object.entries(skipReasons).filter(([k])=>!["noDate","noBranch"].includes(k)).map(([k,v])=>`"${k}" (${v})`).join(", ");
+        if(unknowns)console.warn("Unrecognized branch names in import:",unknowns);
+      }
 
       // Resubscribe only after ALL writes have landed in Firestore
       if(wasLive){
         Promise.allSettled(allWrites).then(()=>{
           if(fb.modules&&fb.db){subAllBranches();}
-          showToast("Sync complete — "+allWrites.length+" document"+(allWrites.length!==1?"s":"")+" written");
+          const msg=failedWrites>0
+            ?`⚠ ${failedWrites} write${failedWrites!==1?"s":""} failed — check Firestore rules`
+            :`Sync complete — ${allWrites.length} document${allWrites.length!==1?"s":""} written`;
+          showToast(msg);
         });
       }
     }catch(err){console.error(err);alert("Revenue import failed: "+(err.message||err));}
