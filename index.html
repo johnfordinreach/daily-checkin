@@ -1058,21 +1058,28 @@ window.importRevenueXL=function(){
       const wasLive=st.syncStatus==="live";
       if(wasLive&&fb.unsubBranches){fb.unsubBranches.forEach(u=>u());fb.unsubBranches=null;}
 
+      // Collect all write promises — only resubscribe AFTER every write has landed
+      const allWrites=[];
       affected.forEach(bid=>{
         try{localStorage.setItem(BRANCHES[bid].storeKey,JSON.stringify(st.branchBriefings[bid]));}catch(ex){}
         if(wasLive&&fb.modules){
           const changedDates=affectedDates.get(bid)||new Set();
           changedDates.forEach(dk=>{
             const b=st.branchBriefings[bid][dk];
-            if(b){delete b._revImportCleared;writeB(b,bid).catch(()=>{});}
+            if(b){delete b._revImportCleared;allWrites.push(writeB(b,bid));}
           });
         }
       });
       st.briefings=st.branchBriefings[st.branch]||{};
-      render();showToast("Revenue imported for "+updated+" day"+(updated!==1?"s":"")+(overflow?" · "+overflow+" unlisted routes stored":" ")+(skipped?" · "+skipped+" skipped":""));
+      render();showToast("Revenue imported for "+updated+" day"+(updated!==1?"s":"")+(overflow?" · "+overflow+" unlisted routes stored":" ")+(skipped?" · "+skipped+" skipped":"")+" · syncing…");
 
-      // Re-subscribe listeners after writes have had time to land
-      if(wasLive)setTimeout(()=>{if(fb.modules&&fb.db)subAllBranches();},3000);
+      // Resubscribe only after ALL writes have landed in Firestore
+      if(wasLive){
+        Promise.allSettled(allWrites).then(()=>{
+          if(fb.modules&&fb.db){subAllBranches();}
+          showToast("Sync complete — "+allWrites.length+" document"+(allWrites.length!==1?"s":"")+" written");
+        });
+      }
     }catch(err){console.error(err);alert("Revenue import failed: "+(err.message||err));}
   };
   inp.click();
@@ -1258,19 +1265,26 @@ window.importBulkXL=function(){
         affected.add(bid);updated++;
       });
 
+      const bulkWrites=[];
       affected.forEach(bid=>{
         try{localStorage.setItem(BRANCHES[bid].storeKey,JSON.stringify(st.branchBriefings[bid]));}catch(e){}
         if(st.syncStatus==="live"&&fb.modules){
           const changedDates=affectedDates.get(bid)||new Set();
           changedDates.forEach(dk=>{
             const b=st.branchBriefings[bid][dk];
-            if(b)writeB(b,bid).catch(()=>{});
+            if(b)bulkWrites.push(writeB(b,bid));
           });
         }
       });
       st.briefings=st.branchBriefings[st.branch]||{};
       render();
-      showToast("Imported "+updated+" route"+(updated!==1?"s":"")+" across "+affected.size+" branch"+(affected.size!==1?"es":"")+(skipped?" · "+skipped+" skipped":""));
+      showToast("Imported "+updated+" route"+(updated!==1?"s":"")+" across "+affected.size+" branch"+(affected.size!==1?"es":"")+(skipped?" · "+skipped+" skipped":"")+" · syncing…");
+      if(st.syncStatus==="live"&&bulkWrites.length){
+        Promise.allSettled(bulkWrites).then(()=>{
+          if(fb.modules&&fb.db)subAllBranches();
+          showToast("Sync complete — "+bulkWrites.length+" document"+(bulkWrites.length!==1?"s":"")+" written");
+        });
+      }
     }catch(err){console.error(err);alert("Import failed: "+(err.message||err));}
   };
   inp.click();
