@@ -1192,6 +1192,10 @@ window.importBulkXL=function(){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:""});
       if(!rows.length){showToast("No data found");return;}
 
+      // Pause listeners during import to prevent Firestore overwriting in-memory changes
+      const wasLiveBulk=st.syncStatus==="live";
+      if(wasLiveBulk&&fb.unsubBranches){fb.unsubBranches.forEach(u=>u());fb.unsubBranches=null;}
+
       // Reverse-lookup maps
       const ATT_REV={};Object.entries(ATT_L).forEach(([k,v])=>{ATT_REV[v.toLowerCase()]=k;});
       const RS_REV={};Object.entries(RSL).forEach(([k,v])=>{RS_REV[v.toLowerCase()]=k;});
@@ -1301,7 +1305,7 @@ window.importBulkXL=function(){
       const bulkWrites=[];
       affected.forEach(bid=>{
         try{localStorage.setItem(BRANCHES[bid].storeKey,JSON.stringify(st.branchBriefings[bid]));}catch(e){}
-        if(st.syncStatus==="live"&&fb.modules){
+        if(wasLiveBulk&&fb.modules){
           const changedDates=affectedDates.get(bid)||new Set();
           changedDates.forEach(dk=>{
             const b=st.branchBriefings[bid][dk];
@@ -1312,7 +1316,7 @@ window.importBulkXL=function(){
       st.briefings=st.branchBriefings[st.branch]||{};
       render();
       showToast("Imported "+updated+" route"+(updated!==1?"s":"")+" across "+affected.size+" branch"+(affected.size!==1?"es":"")+(skipped?" · "+skipped+" skipped":"")+" · syncing…");
-      if(st.syncStatus==="live"&&bulkWrites.length){
+      if(wasLiveBulk&&bulkWrites.length){
         Promise.allSettled(bulkWrites).then(()=>{
           if(fb.modules&&fb.db)subAllBranches();
           showToast("Sync complete — "+bulkWrites.length+" document"+(bulkWrites.length!==1?"s":"")+" written");
