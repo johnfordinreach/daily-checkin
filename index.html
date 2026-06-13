@@ -3321,7 +3321,7 @@ function getDriverStats(bid,days){
     if(dk>tk)return;
     b.routes.forEach(r=>{
       const key=r.assignedDriver||r.driver||r.id;
-      if(!drivers[key])drivers[key]={name:key,route:r.id,days:0,assetsTotal:0,missedTotal:0,lateCount:0,safetyScores:[],absenceDays:0,revenueTotal:0};
+      if(!drivers[key])drivers[key]={name:key,route:r.id,days:0,assetsTotal:0,missedTotal:0,lateCount:0,safetyScores:[],absenceDays:0,revenueTotal:0,revDays:0,revWorkdays:0,revOffdays:0};
       const d=drivers[key];
       d.days++;
       if(ABSENCE.includes(r.status)){d.absenceDays++;return;}
@@ -3331,8 +3331,14 @@ function getDriverStats(bid,days){
       if(r.safetyScore!==""&&r.safetyScore!==null&&r.safetyScore!==undefined){
         const sc=parseFloat(r.safetyScore);if(!isNaN(sc)&&sc>0)d.safetyScores.push(sc);
       }
-      // Revenue per route
-      if(r.revenue){d.revenueTotal+=parseMoney(r.revenue.vending)+parseMoney(r.revenue.market)+parseMoney(r.revenue.ocs);}
+      if(r.revenue){
+        const rv=parseMoney(r.revenue.vending)+parseMoney(r.revenue.market)+parseMoney(r.revenue.ocs);
+        if(rv>0){
+          d.revenueTotal+=rv;d.revDays++;
+          const dow=new Date(dk+"T12:00:00").getDay();
+          if(dow===0||dow===6)d.revOffdays++;else d.revWorkdays++;
+        }
+      }
     });
   });
   return Object.values(drivers).map(d=>{
@@ -3342,8 +3348,9 @@ function getDriverStats(bid,days){
     const lateRate=activeDays>0?Math.round(d.lateCount/activeDays*100):0;
     const avgMissed=activeDays>0?Math.round(d.missedTotal/activeDays*10)/10:0;
     // Trend: compare last half vs first half of period
-    const avgRevenue=activeDays>0?Math.round(d.revenueTotal/activeDays):0;
-    return{...d,activeDays,otPct,avgSafety,lateRate,avgMissed,avgRevenue};
+    const avgRevenue=d.revDays>0?Math.round(d.revenueTotal/d.revDays):0;
+    const avgDayType=d.revOffdays>d.revWorkdays?"off":"workday";
+    return{...d,activeDays,otPct,avgSafety,lateRate,avgMissed,avgRevenue,avgDayType};
   }).filter(d=>d.days>0).sort((a,b)=>{
     // Sort: drivers with data first, by OT% desc
     if(a.otPct===null&&b.otPct!==null)return 1;
@@ -3353,16 +3360,52 @@ function getDriverStats(bid,days){
   });
 }
 
-function driverGrade(otPct,avgSafety,lateRate,avgMissed){
-  if(otPct===null)return{label:"N/A",cls:"",bg:""};
+// Daily revenue target per route: $1M/year split 92/8 workday/weekend
+const ROUTE_ANNUAL_TARGET=1000000;
+const ROUTE_WORKDAY_TARGET=Math.round(ROUTE_ANNUAL_TARGET*0.92/260); // ~$3,538
+const ROUTE_OFFDAY_TARGET=Math.round(ROUTE_ANNUAL_TARGET*0.08/105);  // ~$762
+
+function driverGrade(otPct,avgSafety,lateRate,avgMissed,absenceDays,activeDays,avgRevenue,avgDayType){
+  if(otPct===null&&avgSafety===null)return{label:"N/A",cls:"",bg:""};
   let score=0;
-  if(otPct>=98)score+=3;else if(otPct>=95)score+=2;else if(otPct>=90)score+=1;
-  if(avgSafety!==null){if(avgSafety>=95)score+=2;else if(avgSafety>=85)score+=1;}
-  if(lateRate===0)score+=2;else if(lateRate<=10)score+=1;
+
+  // On-Time (max 3pts)
+  if(otPct!==null){
+    if(otPct>=98)score+=3;else if(otPct>=95)score+=2;else if(otPct>=90)score+=1;
+  }
+
+  // Safety (max 2pts)
+  if(avgSafety!==null){
+    if(avgSafety>=95)score+=2;else if(avgSafety>=85)score+=1;
+  }
+
+  // Late Rate (max 1, min -1)
+  if(lateRate===0)score+=1;
+  else if(lateRate>10)score-=1;
+
+  // Avg Missed (max 1)
   if(avgMissed===0)score+=1;
-  if(score>=7)return{label:"A",cls:"kv-s",bg:"var(--ok-bg)"};
-  if(score>=5)return{label:"B",cls:"",bg:"var(--bg-2)"};
-  if(score>=3)return{label:"C",cls:"kv-w",bg:"var(--warn-bg)"};
+
+  // Absences — NCNS/Callout (max 2, min -2)
+  const totalDays=activeDays+(absenceDays||0);
+  const absRate=totalDays>0?(absenceDays||0)/totalDays:0;
+  if((absenceDays||0)===0)score+=2;
+  else if((absenceDays||0)<=2&&absRate<0.1)score+=0;
+  else score-=2;
+
+  // Revenue vs daily target (max 2, min -1)
+  if(avgRevenue>0){
+    const target=avgDayType==="off"?ROUTE_OFFDAY_TARGET:ROUTE_WORKDAY_TARGET;
+    const pct=avgRevenue/target*100;
+    if(pct>=110)score+=2;
+    else if(pct>=90)score+=1;
+    else if(pct<75)score-=1;
+  }
+
+  // Grade thresholds (max possible ~10)
+  if(score>=9)return{label:"A",cls:"kv-s",bg:"var(--ok-bg)"};
+  if(score>=7)return{label:"B",cls:"",bg:"var(--bg-2)"};
+  if(score>=5)return{label:"C",cls:"kv-w",bg:"var(--warn-bg)"};
   return{label:"D",cls:"kv-d",bg:"var(--danger-bg)"};
 }
 
@@ -3407,14 +3450,19 @@ function renderDrivers(){
     if(totalBranchRev>0)html2+='<div class="kpi" style="grid-column:1/-1"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val" style="color:var(--brand)">'+fmtMoneyAbbr(totalBranchRev)+'</div></div>';
     html2+='</div>';
     drivers.forEach(function(d){
-      const grade=driverGrade(d.otPct,d.avgSafety,d.lateRate,d.avgMissed);
+      const grade=driverGrade(d.otPct,d.avgSafety,d.lateRate,d.avgMissed,d.absenceDays,d.activeDays,d.avgRevenue,d.avgDayType);
       const otCls=d.otPct===null?"":(d.otPct>=95?"kv-s":d.otPct>=85?"kv-w":"kv-d");
       const sfCls=d.avgSafety===null?"":(d.avgSafety>=95?"kv-s":d.avgSafety>=85?"kv-w":"kv-d");
       const flags=[];
       if(d.otPct!==null&&d.otPct<90)flags.push("Low on-time");
       if(d.avgSafety!==null&&d.avgSafety<85)flags.push("Safety concern");
-      if(d.lateRate>20)flags.push("Frequently late");
+      if(d.lateRate>10)flags.push("Frequently late");
       if(d.avgMissed>1)flags.push("High missed avg");
+      if(d.absenceDays>=3)flags.push(`${d.absenceDays} absences`);
+      if(d.avgRevenue>0){
+        const target=d.avgDayType==="off"?ROUTE_OFFDAY_TARGET:ROUTE_WORKDAY_TARGET;
+        if(d.avgRevenue/target<0.75)flags.push("Below revenue target");
+      }
       const gradeColor=grade.cls==="kv-s"?"var(--ok-text)":grade.cls==="kv-w"?"var(--warn-text)":grade.cls==="kv-d"?"var(--danger-text)":"var(--text)";
       html2+='<div class="card" style="margin-bottom:10px">';
       html2+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
@@ -3440,7 +3488,23 @@ function renderDrivers(){
       html2+='</div>';
     });
   }
-  return html2 + renderAttendanceSection();
+  const finePrint=`<div style="margin-top:24px;padding:14px;background:var(--bg-2);border-radius:var(--radius-lg);border:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Grade Calculation</div>
+    <div style="font-size:11px;color:var(--text-2);line-height:1.8;display:grid;grid-template-columns:1fr 1fr;gap:4px 16px">
+      <div><strong style="color:var(--text)">On-Time %</strong></div><div>≥98% +3 · ≥95% +2 · ≥90% +1 · &lt;90% 0</div>
+      <div><strong style="color:var(--text)">Safety Score</strong></div><div>≥95 avg +2 · ≥85 avg +1 · &lt;85 0</div>
+      <div><strong style="color:var(--text)">Late Rate</strong></div><div>0% +1 · ≤10% 0 · &gt;10% −1</div>
+      <div><strong style="color:var(--text)">Avg Missed</strong></div><div>0 missed +1 · &gt;0 missed 0</div>
+      <div><strong style="color:var(--text)">Absences</strong></div><div>0 absent +2 · 1–2 0 · 3+ −2</div>
+      <div><strong style="color:var(--text)">Revenue vs Target</strong></div><div>≥110% +2 · ≥90% +1 · ≥75% 0 · &lt;75% −1</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.7">
+      <strong style="color:var(--text-2)">Grade thresholds:</strong> A ≥9 pts · B ≥7 pts · C ≥5 pts · D &lt;5 pts<br>
+      <strong style="color:var(--text-2)">Revenue target:</strong> $1M/year per route · workday $${ROUTE_WORKDAY_TARGET.toLocaleString()}/day · weekend $${ROUTE_OFFDAY_TARGET.toLocaleString()}/day (92/8 split)<br>
+      Revenue scoring only applies when revenue data is available for the driver.
+    </div>
+  </div>`;
+  return html2 + finePrint + renderAttendanceSection();
 }
 
 
