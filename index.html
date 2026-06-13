@@ -3322,7 +3322,9 @@ function getDriverStats(bid,days){
     if(dk>tk)return;
     b.routes.forEach(r=>{
       if(r.isAdHoc)return; // ad-hoc routes excluded from driver scorecards
-      const key=r.assignedDriver||r.driver||r.id;
+      const name=r.assignedDriver||r.driver;
+      if(!name||!name.trim())return; // skip routes with no named driver
+      const key=name;
       if(!drivers[key])drivers[key]={name:key,route:r.id,days:0,assetsTotal:0,missedTotal:0,lateCount:0,safetyScores:[],absenceDays:0,unexcusedDays:0,revenueTotal:0,revDays:0,revWorkdays:0,revOffdays:0};
       const d=drivers[key];
       d.days++;
