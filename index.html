@@ -15,138 +15,169 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#ffffff;--bg-2:#f5f4ef;--bg-3:#ecebe4;
-  --text:#191917;--text-2:#5f5e5a;--text-3:#888780;
-  --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.15);
-  --info-bg:#E6F1FB;--info-text:#0C447C;
-  --ok-bg:#EAF3DE;--ok-text:#3B6D11;--ok-border:#C0DD97;--ok-line:#639922;
-  --warn-bg:#FAEEDA;--warn-text:#854F0B;--warn-border:#FAC775;--warn-line:#EF9F27;
-  --danger-bg:#FCEBEB;--danger-text:#A32D2D;--danger-border:#F7C1C1;--danger-line:#E24B4A;
+  --bg:#fafaf8;--bg-2:#f2f1ec;--bg-3:#e8e7e0;
+  --text:#141412;--text-2:#5a5956;--text-3:#96948e;
+  --border:rgba(0,0,0,.06);--border-2:rgba(0,0,0,.13);
+  --info-bg:#E8F2FC;--info-text:#0B4282;
+  --ok-bg:#E6F4D8;--ok-text:#2E6010;--ok-border:#B5D988;--ok-line:#5A9A1A;
+  --warn-bg:#FDF0DC;--warn-text:#7A450A;--warn-border:#F9C46A;--warn-line:#E09020;
+  --danger-bg:#FDEAEA;--danger-text:#9B2424;--danger-border:#F5B8B8;--danger-line:#D94040;
   --purple-bg:#EEEDFE;--purple-text:#3C3489;
-  --blue:#378ADD;
-  --brand:#D63E0E;--brand-light:rgba(214,62,14,.08);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.05);
-  --radius-md:10px;--radius-lg:14px;
+  --blue:#2B7DD4;
+  --brand:#C73A0D;--brand-muted:rgba(199,58,13,.12);--brand-light:rgba(199,58,13,.07);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.09),0 1px 4px rgba(0,0,0,.05);
+  --shadow-card:0 2px 8px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --radius-md:12px;--radius-lg:18px;--radius-xl:22px;
   --font:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
 }
 [data-theme="dark"]{
-  --bg:#1a1a18;--bg-2:#242422;--bg-3:#2e2e2c;
-  --text:#f0eee7;--text-2:#a8a69f;--text-3:#666460;
-  --border:rgba(255,255,255,.08);--border-2:rgba(255,255,255,.16);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4);
-  --info-bg:#0d2a47;--info-text:#7bbdf7;--ok-bg:#1a3009;--ok-text:#8fcf4e;
-  --warn-bg:#3a2000;--warn-text:#f5c57a;--danger-bg:#3a0a0a;--danger-text:#f78080;
-  --purple-bg:#1e1a40;--purple-text:#b0a9f5;--brand-light:rgba(214,62,14,.15);
+  --bg:#171715;--bg-2:#202020;--bg-3:#2a2a28;
+  --text:#f0eee7;--text-2:#a0a09a;--text-3:#5e5e58;
+  --border:rgba(255,255,255,.07);--border-2:rgba(255,255,255,.14);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.35);--shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-card:0 2px 8px rgba(0,0,0,.4);
+  --info-bg:#0c2840;--info-text:#79b8f5;--ok-bg:#182e08;--ok-text:#8ed44a;
+  --warn-bg:#321d00;--warn-text:#f4c06a;--danger-bg:#320a0a;--danger-text:#f47070;
+  --purple-bg:#1c1840;--purple-text:#aea5f5;--brand-light:rgba(199,58,13,.18);
 }
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#1a1a18;--bg-2:#242422;--bg-3:#2e2e2c;
-  --text:#f0eee7;--text-2:#a8a69f;--text-3:#666460;
-  --border:rgba(255,255,255,.08);--border-2:rgba(255,255,255,.16);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.4);
-  --info-bg:#0d2a47;--info-text:#7bbdf7;--ok-bg:#1a3009;--ok-text:#8fcf4e;
-  --warn-bg:#3a2000;--warn-text:#f5c57a;--danger-bg:#3a0a0a;--danger-text:#f78080;
-  --purple-bg:#1e1a40;--purple-text:#b0a9f5;--brand-light:rgba(214,62,14,.15);
+  --bg:#171715;--bg-2:#202020;--bg-3:#2a2a28;
+  --text:#f0eee7;--text-2:#a0a09a;--text-3:#5e5e58;
+  --border:rgba(255,255,255,.07);--border-2:rgba(255,255,255,.14);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.35);--shadow-md:0 4px 16px rgba(0,0,0,.5);
+  --shadow-card:0 2px 8px rgba(0,0,0,.4);
+  --info-bg:#0c2840;--info-text:#79b8f5;--ok-bg:#182e08;--ok-text:#8ed44a;
+  --warn-bg:#321d00;--warn-text:#f4c06a;--danger-bg:#320a0a;--danger-text:#f47070;
+  --purple-bg:#1c1840;--purple-text:#aea5f5;--brand-light:rgba(199,58,13,.18);
 }}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;overflow-x:hidden;overscroll-behavior-x:none}
-body{padding:max(env(safe-area-inset-top),16px) 16px calc(76px + max(env(safe-area-inset-bottom),8px));max-width:480px;margin:0 auto;min-height:100vh}
+body{padding:max(env(safe-area-inset-top),20px) 16px calc(80px + max(env(safe-area-inset-bottom),8px));max-width:500px;margin:0 auto;min-height:100vh}
 button{font-family:inherit;cursor:pointer;-webkit-appearance:none;border:none;background:none;color:inherit;transition:opacity .12s}
-input,select,textarea{font-family:inherit;width:100%;font-size:14px;padding:9px 12px;border:1px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
-input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(214,62,14,.12);background:var(--bg)}
-textarea{height:60px;resize:none}
-.app-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-top:4px;min-width:0;overflow:hidden}
-.app-title{font-size:22px;font-weight:700;color:var(--brand);letter-spacing:-.3px}
+input,select,textarea{font-family:inherit;width:100%;font-size:14px;padding:10px 13px;border:1.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(199,58,13,.1);background:var(--bg)}
+textarea{height:64px;resize:none}
+
+/* ── App header ── */
+.app-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-top:4px;min-width:0;overflow:hidden}
+.app-title{font-size:24px;font-weight:800;color:var(--brand);letter-spacing:-.5px}
 .app-sub{font-size:12px;color:var(--text-2);margin-top:3px;display:flex;align-items:center;gap:6px}
-.date-badge{font-size:11px;color:var(--text-2);background:var(--bg-2);padding:5px 10px;border-radius:var(--radius-md);border:1px solid var(--border);white-space:nowrap;font-weight:500}
-.sync-pill{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;display:inline-flex;align-items:center;gap:4px;letter-spacing:.02em}
+.date-badge{font-size:11px;color:var(--text-2);background:var(--bg-2);padding:6px 11px;border-radius:var(--radius-md);border:1px solid var(--border-2);white-space:nowrap;font-weight:600}
+
+/* ── Sync pill ── */
+.sync-pill{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px;letter-spacing:.03em}
 .sync-live{background:var(--ok-bg);color:var(--ok-text)}.sync-local{background:var(--bg-2);color:var(--text-2)}.sync-error{background:var(--danger-bg);color:var(--danger-text)}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 .sync-live .sync-dot{animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.status-stepper{display:flex;margin-bottom:16px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border-2);box-shadow:var(--shadow-sm)}
-.status-step{flex:1;padding:10px 4px;text-align:center;font-size:12px;color:var(--text-2);background:var(--bg-2);cursor:pointer;border-right:1px solid var(--border-2);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── Status stepper ── */
+.status-stepper{display:flex;margin-bottom:18px;border-radius:var(--radius-lg);overflow:hidden;border:1.5px solid var(--border-2);box-shadow:var(--shadow-sm)}
+.status-step{flex:1;padding:11px 4px;text-align:center;font-size:12px;color:var(--text-2);background:var(--bg-2);cursor:pointer;border-right:1.5px solid var(--border-2);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;justify-content:center;font-weight:500}
 .status-step:last-child{border-right:none}
-.status-step i{font-size:18px}
-.ss-ns{background:var(--danger-bg);color:var(--danger-text);font-weight:600}
-.ss-ip{background:var(--warn-bg);color:var(--warn-text);font-weight:600}
-.ss-fn{background:var(--ok-bg);color:var(--ok-text);font-weight:600}
-.rs-chip{font-size:10px;padding:3px 7px;border-radius:20px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;letter-spacing:.02em}
+.status-step i{font-size:20px}
+.ss-ns{background:var(--danger-bg);color:var(--danger-text);font-weight:700}
+.ss-ip{background:var(--warn-bg);color:var(--warn-text);font-weight:700}
+.ss-fn{background:var(--ok-bg);color:var(--ok-text);font-weight:700}
+
+/* ── Route status chips ── */
+.rs-chip{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;letter-spacing:.03em}
 .rs-ns{background:var(--bg-3);color:var(--text-3)}.rs-ip{background:var(--warn-bg);color:var(--warn-text)}.rs-fn{background:var(--ok-bg);color:var(--ok-text)}
 .sb-ns{background:var(--danger-bg);color:var(--danger-text)}.sb-ip{background:var(--warn-bg);color:var(--warn-text)}.sb-fn{background:var(--ok-bg);color:var(--ok-text)}
-.status-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-flex;align-items:center;gap:4px}
-.section{margin-bottom:18px}
-.section-lbl{font-size:11px;font-weight:700;color:var(--text-2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;display:block;padding-left:10px;border-left:3px solid var(--brand)}
-.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;box-shadow:var(--shadow-sm)}
-.field{margin-bottom:12px}.field:last-child{margin-bottom:0}
-.field-lbl{font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.04em}
-.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.four-col{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.route-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s}
+.status-badge{font-size:11px;padding:4px 11px;border-radius:20px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+
+/* ── Sections ── */
+.section{margin-bottom:22px}
+.section-lbl{font-size:11px;font-weight:800;color:var(--text-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;display:block;padding-left:10px;border-left:3px solid var(--brand)}
+
+/* ── Cards ── */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow-card)}
+.field{margin-bottom:14px}.field:last-child{margin-bottom:0}
+.field-lbl{font-size:11px;font-weight:700;color:var(--text-2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.05em}
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.four-col{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+
+/* ── Route cards — data-forward ── */
+.route-card{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-card);transition:box-shadow .15s,border-color .15s}
 .route-card:has(.route-body.open){box-shadow:var(--shadow-md);border-color:var(--border-2)}
-.route-head{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;user-select:none;min-height:52px;transition:background .1s}
+.route-head{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer;user-select:none;min-height:60px;transition:background .1s}
 .route-head:active{background:var(--bg-2)}
-.r-id{font-size:10px;font-weight:700;color:var(--text-3);min-width:48px;flex-shrink:0;letter-spacing:.04em}
-.r-driver{font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.r-cover{font-size:10px;font-weight:700;color:var(--purple-text);background:var(--purple-bg);padding:2px 6px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
-.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.r-id{font-size:10px;font-weight:800;color:var(--text-3);min-width:0;flex-shrink:0;letter-spacing:.06em}
+.r-driver{font-size:15px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
+.r-cover{font-size:10px;font-weight:700;color:var(--purple-text);background:var(--purple-bg);padding:3px 7px;border-radius:20px;flex-shrink:0;letter-spacing:.02em}
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .sdot-yes{background:var(--ok-line)}.sdot-no{background:var(--danger-line)}.sdot-out{background:var(--warn-line)}.sdot-open{background:var(--text-3)}
 .chev{font-size:16px;color:var(--text-3);transition:transform .2s;flex-shrink:0}
 .chev.open{transform:rotate(180deg)}
-.route-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.route-body{display:none;padding:0 15px 15px;border-top:1px solid var(--border)}
 .route-body.open{display:block}
-.divider{height:1px;background:var(--border);margin:12px 0}
+.divider{height:1px;background:var(--border);margin:14px 0}
 .toggle-row{display:flex;gap:3px;background:var(--bg-2);border-radius:var(--radius-md);padding:3px;border:1px solid var(--border)}
-.toggle-btn{flex:1;padding:8px 4px;font-size:12px;color:var(--text-2);border-radius:8px;transition:all .15s;min-height:32px;font-weight:500}
+.toggle-btn{flex:1;padding:9px 4px;font-size:12px;color:var(--text-2);border-radius:10px;transition:all .15s;min-height:36px;font-weight:600}
 .t-on{background:var(--bg);color:var(--text);font-weight:700;box-shadow:var(--shadow-sm)}
 .t-ns{background:var(--danger-bg);color:var(--danger-text);font-weight:700}
 .t-ip{background:var(--warn-bg);color:var(--warn-text);font-weight:700}
 .t-fn{background:var(--ok-bg);color:var(--ok-text);font-weight:700}
-.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--brand);color:#fff;border-radius:var(--radius-lg);padding:15px;font-size:15px;font-weight:700;min-height:52px;box-shadow:0 2px 8px rgba(214,62,14,.3),0 1px 2px rgba(0,0,0,.1);letter-spacing:.01em;transition:transform .1s,box-shadow .1s}
-.btn-primary:active{transform:scale(.98);box-shadow:0 1px 4px rgba(214,62,14,.25)}
-.btn-sec{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg-2);color:var(--text);border:1px solid var(--border-2);border-radius:var(--radius-md);padding:10px 14px;font-size:13px;min-height:40px;flex:1;font-weight:500;box-shadow:var(--shadow-sm)}
-.btn-sec:active{opacity:.8}
+
+/* ── Buttons ── */
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--brand);color:#fff;border-radius:var(--radius-lg);padding:16px;font-size:15px;font-weight:800;min-height:54px;box-shadow:0 3px 12px rgba(199,58,13,.35),0 1px 3px rgba(0,0,0,.1);letter-spacing:.01em;transition:transform .1s,box-shadow .1s}
+.btn-primary:active{transform:scale(.98);box-shadow:0 1px 6px rgba(199,58,13,.25)}
+.btn-sec{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg-2);color:var(--text);border:1.5px solid var(--border-2);border-radius:var(--radius-md);padding:10px 15px;font-size:13px;min-height:42px;flex:1;font-weight:600;box-shadow:var(--shadow-sm)}
+.btn-sec:active{opacity:.75}
 .btn-danger{background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger-border)}
-.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:18px}
-.kpi{background:var(--bg-2);border-radius:var(--radius-lg);padding:14px 12px;text-align:center;border:1px solid var(--border)}
-.kpi-lbl{font-size:10px;font-weight:700;color:var(--text-3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
-.kpi-val{font-size:26px;font-weight:700;letter-spacing:-.5px}
-.kpi-delta{font-size:11px;margin-top:4px;font-weight:500}
+
+/* ── KPI tiles ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.kpi{background:var(--bg-2);border-radius:var(--radius-lg);padding:16px 12px;text-align:center;border:1px solid var(--border)}
+.kpi-lbl{font-size:10px;font-weight:800;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.kpi-val{font-size:28px;font-weight:800;letter-spacing:-.6px}
+.kpi-delta{font-size:11px;margin-top:5px;font-weight:600}
 .kv-s{color:var(--ok-text)}.kv-w{color:var(--warn-text)}.kv-d{color:var(--danger-text)}
-.alert-box{background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-md);padding:12px;margin-bottom:14px}
+
+/* ── Alert / info boxes ── */
+.alert-box{background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:var(--radius-md);padding:13px;margin-bottom:14px}
 .alert-title{font-size:12px;font-weight:700;color:var(--danger-text);margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .alert-item{font-size:13px;color:var(--danger-text);margin:3px 0}
-.ok-box{background:var(--ok-bg);border:1px solid var(--ok-border);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;font-size:13px;color:var(--ok-text);display:flex;align-items:center;gap:8px}
-.info-box{background:var(--info-bg);border:1px solid rgba(12,68,124,.15);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;font-size:12px;color:var(--info-text);line-height:1.5}
-.warn-box{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;font-size:12px;color:var(--warn-text);line-height:1.5}
-.plan-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.plan-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px;align-items:flex-start}
+.ok-box{background:var(--ok-bg);border:1px solid var(--ok-border);border-radius:var(--radius-md);padding:13px;margin-bottom:14px;font-size:13px;color:var(--ok-text);display:flex;align-items:center;gap:8px}
+.info-box{background:var(--info-bg);border:1px solid rgba(11,66,130,.12);border-radius:var(--radius-md);padding:13px;margin-bottom:14px;font-size:12px;color:var(--info-text);line-height:1.5}
+.warn-box{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:13px;margin-bottom:14px;font-size:12px;color:var(--warn-text);line-height:1.5}
+.plan-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;box-shadow:var(--shadow-card)}
+.plan-row{display:flex;gap:8px;margin-bottom:9px;font-size:13px;align-items:flex-start}
 .plan-row:last-child{margin-bottom:0}
-.plan-lbl{color:var(--text-2);min-width:66px;padding-top:2px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.plan-lbl{color:var(--text-2);min-width:68px;padding-top:2px;flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 .plan-val{line-height:1.55;flex:1;font-size:13px}
-.pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;margin:2px 3px 2px 0;font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;margin:2px 3px 2px 0;font-weight:700}
 .p-pto{background:var(--info-bg);color:var(--info-text)}.p-ncns{background:var(--danger-bg);color:var(--danger-text)}.p-callout{background:var(--warn-bg);color:var(--warn-text)}.p-relief{background:var(--purple-bg);color:var(--purple-text)}
-.totes-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
-.totes-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
-.tote-cell{text-align:center;background:var(--bg-2);border-radius:var(--radius-md);padding:10px 4px;border:1px solid var(--border)}
-.tote-val{font-size:20px;font-weight:700}
-.tote-lbl{font-size:10px;color:var(--text-2);margin-top:2px;font-weight:600}
-.rrow{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;box-shadow:var(--shadow-sm)}
+.totes-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;box-shadow:var(--shadow-card)}
+.totes-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.tote-cell{text-align:center;background:var(--bg-2);border-radius:var(--radius-md);padding:12px 4px;border:1px solid var(--border)}
+.tote-val{font-size:20px;font-weight:800}
+.tote-lbl{font-size:10px;color:var(--text-2);margin-top:2px;font-weight:700}
+
+/* ── History route rows ── */
+.rrow{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px;display:flex;align-items:flex-start;gap:10px;margin-bottom:7px;box-shadow:var(--shadow-card)}
 .rrow-left{flex:1;min-width:0}
-.rrow-id{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
-.rrow-driver{font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rrow-id{font-size:10px;font-weight:800;color:var(--text-3);letter-spacing:.05em}
+.rrow-driver{font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .rrow-meta{font-size:11px;color:var(--text-2);margin-top:3px;line-height:1.7}
 .rrow-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;padding-top:2px}
-.chip{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600}
+.chip{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700}
 .c-yes{background:var(--ok-bg);color:var(--ok-text)}.c-no{background:var(--danger-bg);color:var(--danger-text)}.c-out{background:var(--warn-bg);color:var(--warn-text)}.c-open{background:var(--bg-2);color:var(--text-2)}
-.absence-banner{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:10px;margin-bottom:10px;font-size:12px;color:var(--warn-text)}
+.absence-banner{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius-md);padding:11px;margin-bottom:10px;font-size:12px;color:var(--warn-text)}
 .actions-row{display:flex;gap:8px;margin-bottom:8px}
 .saved-note{font-size:11px;color:var(--text-2);text-align:center;margin-top:6px}
-.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:var(--bg);padding:11px 20px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;z-index:100;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.2);white-space:nowrap}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--text);color:var(--bg);padding:12px 22px;border-radius:24px;font-size:13px;font-weight:700;opacity:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .25s ease;z-index:100;pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.22);white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .footer-note{font-size:11px;color:var(--text-3);text-align:center;margin-top:20px;padding-top:14px;border-top:1px solid var(--border);line-height:1.5}
-.nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 max(env(safe-area-inset-bottom),6px);z-index:50;max-width:480px;margin:0 auto}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;color:var(--text-3);font-size:10px;font-weight:500;background:none;border:none;min-height:48px;transition:color .15s}
+
+/* ── Nav bar (mobile bottom / desktop sidebar) ── */
+.nav-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1.5px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 max(env(safe-area-inset-bottom),6px);z-index:50;max-width:500px;margin:0 auto}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;color:var(--text-3);font-size:10px;font-weight:600;background:none;border:none;min-height:50px;transition:color .15s}
 .nav-btn i{font-size:22px;transition:transform .15s}
 .nav-btn.active{color:var(--brand)}
 .nav-btn.active i{color:var(--brand);transform:scale(1.1)}
@@ -154,15 +185,18 @@ textarea{height:60px;resize:none}
 .nav-content{padding-bottom:8px}
 @media(min-width:768px){
   html,body{height:100%}
-  body{padding:36px 52px 36px calc(272px + 52px);max-width:none;margin:0}
-  .nav-bar{top:0;bottom:0;left:0;right:auto;width:272px;flex-direction:column;align-items:stretch;justify-content:flex-start;border-top:none;border-right:1px solid var(--border);padding:0 12px 24px;gap:2px;max-width:none;overflow-y:auto;background:var(--bg-2)}
-  .nav-brand{display:flex;flex-direction:column;padding:0 10px 20px;border-bottom:1px solid var(--border);margin-bottom:12px;border-top:4px solid var(--brand);padding-top:20px}
-  .nav-brand-logo{width:72px;height:72px;border-radius:14px;object-fit:cover;margin-bottom:12px;box-shadow:var(--shadow-md)}
+  body{padding:36px 52px 36px calc(280px + 52px);max-width:none;margin:0}
+  .nav-bar{top:0;bottom:0;left:0;right:auto;width:280px;flex-direction:column;align-items:stretch;justify-content:flex-start;border-top:none;border-right:1.5px solid var(--border);padding:0 14px 24px;gap:2px;max-width:none;overflow-y:auto;background:var(--bg-2)}
+  .nav-brand{display:flex;flex-direction:column;padding:0 10px 22px;border-bottom:1px solid var(--border);margin-bottom:14px;border-top:5px solid var(--brand);padding-top:22px}
+  .nav-brand-logo{width:68px;height:68px;border-radius:14px;object-fit:cover;margin-bottom:12px;box-shadow:var(--shadow-md)}
   .nav-brand-title{font-size:15px;font-weight:800;color:var(--brand);line-height:1.3;letter-spacing:-.2px}
-  .nav-brand-sub{font-size:11px;color:var(--text-2);margin-top:3px}
-  .nav-btn{flex-direction:row;justify-content:flex-start;padding:10px 12px;gap:12px;font-size:14px;border-radius:var(--radius-md);min-height:44px;flex:none;width:100%;font-weight:500}
+  .nav-brand-sub{font-size:11px;color:var(--text-2);margin-top:3px;font-weight:500}
+  .nav-btn{flex-direction:row;justify-content:flex-start;padding:11px 13px;gap:13px;font-size:14px;border-radius:var(--radius-md);min-height:46px;flex:none;width:100%;font-weight:600}
   .nav-btn i{font-size:18px}
-  .nav-btn.active{background:var(--brand-light);color:var(--brand);font-weight:700}
+  .nav-btn.active{background:var(--brand-light);color:var(--brand);font-weight:800}
+  .nav-btn.active i{transform:none}
+  .nav-bar select{display:block;margin-top:auto;font-size:13px;font-weight:600;padding:10px 12px;border-radius:var(--radius-md)}
+}
   .nav-btn.active i{color:var(--brand);transform:none}
   .nav-content{max-width:1100px;padding-bottom:0}
   .kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -416,7 +450,7 @@ const BRANCH_ROUTES_KEY="branch_routes_v1";
 const BRANCH_SEL_KEY="branch_selected_v1";
 
 // ---- State ----
-let st={branch:"dallas",tab:"today",todayView:"entry",openIdx:null,detailDate:null,trendRange:30,briefings:{},branchBriefings:{},syncStatus:"local",syncError:"",managerName:"",selectedDate:null,rollupDate:null,branchRoutes:{},budgets:{},driverRange:30,notifSettings:{},routeMgmtOpen:false,showFinishedRoutes:false,attendanceMonth:null,attendanceDay:null,budgetMonth:null,recapDismissed:null,rollupPeriod:"monthly",rollupDM:"auto"};
+let st={branch:"dallas",tab:"today",todayView:"entry",openIdx:null,detailDate:null,trendRange:30,briefings:{},branchBriefings:{},syncStatus:"local",syncError:"",managerName:"",selectedDate:null,rollupDate:null,branchRoutes:{},budgets:{},driverRange:30,notifSettings:{},routeMgmtOpen:false,showFinishedRoutes:false,attendanceMonth:null,attendanceDay:null,budgetMonth:null,recapDismissed:null,rollupPeriod:"monthly",rollupDM:"auto",recentBranches:[],branchPickerOpen:false};
 let fb={app:null,db:null,unsubAll:null,unsubBudgets:null,modules:null};
 let wt=null;
 
@@ -599,6 +633,7 @@ async function initFirebase(){
     st.syncStatus="live";
     subAll();
     subBudgets();
+    loadPinHash();
     render();
   }catch(e){st.syncStatus="error";st.syncError=e.message||String(e);render();}
 }
@@ -724,6 +759,23 @@ function lastN(n){const d=sortedDates();return n>0?d.slice(0,n):d;}
 
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
 
+// Tiny inline sparkline SVG from an array of numbers (last 7 days)
+function sparkline(values,color){
+  const vals=values.filter(v=>v!==null&&v!==undefined&&!isNaN(v));
+  if(vals.length<2)return"";
+  const W=56,H=18,P=2;
+  const min=Math.min(...vals),max=Math.max(...vals);
+  const range=max-min||1;
+  const pts=vals.map((v,i)=>{
+    const x=P+(i/(vals.length-1))*(W-P*2);
+    const y=H-P-((v-min)/range)*(H-P*2);
+    return`${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  const trend=vals[vals.length-1]>=vals[0];
+  const c=color||(trend?"var(--ok-line)":"var(--danger-line)");
+  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;margin:4px auto 0"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>`;
+}
+
 // ---- Field collection ----
 function collectTo(b){
   const gv=id=>{const e=document.getElementById(id);return e?e.value:null;};
@@ -765,20 +817,93 @@ window.nextDay=function(){
   const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();
 };
 window.jumpToday=function(){st.selectedDate=todayKey();const b=st.briefings[st.selectedDate];st.todayView=b&&b.published?"summary":"entry";st.openIdx=null;st.showFinishedRoutes=false;render();};
-window.switchTab=function(t){if(st.tab==="today"&&st.todayView==="entry"){const b=ensureToday();collectTo(b);qW(b);}st.tab=t;st.detailDate=null;render();};
+window.switchTab=function(t){
+  if(st.tab===t)return;
+  if(st.tab==="today"&&st.todayView==="entry"){const b=ensureToday();collectTo(b);qW(b);}
+  st.tab=t;st.detailDate=null;
+  // Animate tab transition
+  const root=document.getElementById("root");
+  root.style.opacity="0";root.style.transform="translateY(6px)";
+  setTimeout(()=>{
+    render();
+    requestAnimationFrame(()=>{
+      root.style.transition="opacity .18s ease,transform .22s cubic-bezier(.2,.8,.3,1)";
+      root.style.opacity="1";root.style.transform="translateY(0)";
+      setTimeout(()=>{root.style.transition="";},250);
+    });
+  },80);
+};
 window.toggleRoute=function(i){const b=ensureToday();collectTo(b);qW(b);st.openIdx=st.openIdx===i?null:i;render();};
 window.setAtt=function(i,s){const b=ensureToday();collectTo(b);b.routes[i].status=s;qW(b);render();};
 window.setRS=function(i,s){const b=ensureToday();collectTo(b);b.routes[i].routeStatus=s;if(s==="finished"&&st.openIdx===i)st.openIdx=null;qW(b);render();};
 window.setTote=function(i,tote,val){const b=ensureToday();collectTo(b);if(!b.routes[i].totes)b.routes[i].totes={candy:"no",freezer:"no",cooler:"no",dock:"no"};b.routes[i].totes[tote]=val;qW(b);render();};
 window.setAllTotes=function(i,val){const b=ensureToday();collectTo(b);if(!b.routes[i].totes)b.routes[i].totes={candy:"no",freezer:"no",cooler:"no",dock:"no"};["candy","freezer","cooler","dock"].forEach(t=>{b.routes[i].totes[t]=val;});qW(b);render();};
 window.setDT=function(i,t){const b=ensureToday();collectTo(b);b.routes[i].driverType=t;if(t==="assigned")b.routes[i].driver=b.routes[i].assignedDriver;qW(b);render();};
-window.onFI=function(){const b=ensureToday();collectTo(b);qW(b);};
+window.onFI=function(){const b=ensureToday();collectTo(b);qW(b);showSavePulse();};
+
+// Floating "Saving… → Saved ✓" indicator
+let savePulseTimer=null;
+function showSavePulse(){
+  let el=document.getElementById("save-pulse");
+  if(!el){
+    el=document.createElement("div");
+    el.id="save-pulse";
+    el.style.cssText="position:fixed;top:calc(max(env(safe-area-inset-top),12px) + 4px);right:14px;z-index:90;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:5px;transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:var(--shadow-md)";
+    document.body.appendChild(el);
+  }
+  el.style.background="var(--bg-2)";el.style.color="var(--text-2)";
+  el.innerHTML='<i class="ti ti-loader-2" style="font-size:12px;animation:spin .8s linear infinite"></i> Saving…';
+  el.style.opacity="1";el.style.transform="translateY(0)";
+  clearTimeout(savePulseTimer);
+  savePulseTimer=setTimeout(()=>{
+    el.style.background="var(--ok-bg)";el.style.color="var(--ok-text)";
+    el.innerHTML='<i class="ti ti-check" style="font-size:12px"></i> Saved';
+    savePulseTimer=setTimeout(()=>{
+      el.style.opacity="0";el.style.transform="translateY(-6px)";
+    },1200);
+  },850);
+}
 window.onDriverSelect=function(i,val){
   const b=ensureToday();collectTo(b);
   if(val!=="__manual__")b.routes[i].driver=val;
   else b.routes[i].driver="";
   qW(b);render();
 };
+window.toggleBranchPicker=function(e){e&&e.stopPropagation();st.branchPickerOpen=!st.branchPickerOpen;render();};
+window.closeBranchPicker=function(){if(st.branchPickerOpen){st.branchPickerOpen=false;render();}};
+
+function branchPill(){
+  const recent=(st.recentBranches||[]).filter(b=>b!==st.branch).slice(0,4);
+  const allSorted=[...BRANCH_IDS].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label));
+  const dm=dmForBranch(st.branch);
+  return`<div style="position:relative;margin-bottom:14px" onclick="event.stopPropagation()">
+    <button onclick="toggleBranchPicker(event)" style="display:flex;align-items:center;gap:8px;width:100%;background:var(--bg-2);border:1.5px solid ${st.branchPickerOpen?"var(--brand)":"var(--border-2)"};border-radius:var(--radius-lg);padding:9px 14px;cursor:pointer;transition:border-color .15s;box-shadow:var(--shadow-sm)">
+      <i class="ti ti-building-store" style="font-size:16px;color:var(--brand);flex-shrink:0"></i>
+      <div style="flex:1;text-align:left;min-width:0">
+        <div style="font-size:15px;font-weight:800;color:var(--brand);letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${BRANCHES[st.branch].label}</div>
+        ${dm?`<div style="font-size:10px;color:var(--text-3);font-weight:600;margin-top:1px">${dm}</div>`:""}
+      </div>
+      <i class="ti ti-chevron-${st.branchPickerOpen?"up":"down"}" style="font-size:14px;color:var(--text-3);flex-shrink:0;transition:transform .2s"></i>
+    </button>
+    ${st.branchPickerOpen?`<div style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg);border:1.5px solid var(--border-2);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);z-index:80;overflow:hidden;max-height:340px;overflow-y:auto">
+      ${recent.length?`<div style="padding:8px 10px 4px;font-size:10px;font-weight:800;color:var(--text-3);letter-spacing:.07em;text-transform:uppercase">Recent</div>
+        ${recent.map(bid=>`<button onclick="switchBranch('${bid}');render()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;text-align:left;transition:background .1s" onmouseover="this.style.background='var(--bg-2)'" onmouseout="this.style.background='none'">
+          <i class="ti ti-clock-hour-4" style="font-size:13px;color:var(--text-3);flex-shrink:0"></i>
+          <span style="font-size:14px;font-weight:700;flex:1">${BRANCHES[bid].label}</span>
+          <span style="font-size:10px;color:var(--text-3)">${dmForBranch(bid)||""}</span>
+        </button>`).join("")}
+        <div style="padding:8px 10px 4px;font-size:10px;font-weight:800;color:var(--text-3);letter-spacing:.07em;text-transform:uppercase;border-top:1px solid var(--border);margin-top:2px">All Branches</div>`:""}
+      ${allSorted.map(bid=>`<button onclick="switchBranch('${bid}');render()" style="display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;background:${bid===st.branch?"var(--brand-light)":"none"};border:none;border-bottom:1px solid var(--border);cursor:pointer;text-align:left;transition:background .1s" onmouseover="this.style.background='${bid===st.branch?"var(--brand-light)":"var(--bg-2)"}'" onmouseout="this.style.background='${bid===st.branch?"var(--brand-light)":"none"}'">
+        ${bid===st.branch?`<i class="ti ti-check" style="font-size:13px;color:var(--brand);flex-shrink:0"></i>`:`<span style="width:13px;flex-shrink:0"></span>`}
+        <span style="font-size:14px;font-weight:${bid===st.branch?"800":"600"};flex:1;color:${bid===st.branch?"var(--brand)":"var(--text)"}">${BRANCHES[bid].label}</span>
+        <span style="font-size:10px;color:var(--text-3)">${dmForBranch(bid)||""}</span>
+      </button>`).join("")}
+    </div>`:""}
+  </div>`;
+}
+
+// Close picker on outside tap
+document.addEventListener("click",()=>{if(st.branchPickerOpen)closeBranchPicker();});
 window.addThirdDriver=function(i){const b=ensureToday();b.routes[i].thirdDriver="__pending__";qW(b);render();};
 window.clearThirdDriver=function(i){const b=ensureToday();b.routes[i].thirdDriver="";qW(b);render();};
 window.onThirdDriverSelect=function(i,val){
@@ -812,7 +937,10 @@ window.switchBranch=function(bid){
   persistLocal();
   // Switch branch — no need to re-subscribe, all branches already subscribed
   st.branch=bid;
-  st.rollupDM="auto"; // re-derive DM from new active branch
+  st.rollupDM="auto";
+  st.branchPickerOpen=false;
+  // Track recently used branches (max 4, current branch excluded)
+  st.recentBranches=[bid,...(st.recentBranches||[]).filter(b=>b!==bid)].slice(0,5);
   try{localStorage.setItem(BRANCH_SEL_KEY,bid);}catch(e){}
   // Point st.briefings at the new branch (already populated from Firebase listener)
   st.briefings=st.branchBriefings[bid]||{};
@@ -972,8 +1100,110 @@ function parseExcelTime(val){
   return s;
 }
 
-// ---- Revenue Excel import ----
-window.importRevenueXL=function(){
+// ---- Import PIN protection (Firestore-backed, single shared PIN) ----
+const ADMIN_PIN_COLLECTION="dfw_notif_subs";
+const ADMIN_PIN_DOC="admin_pin";
+let _cachedPinHash=null; // loaded from Firestore on init
+
+async function loadPinHash(){
+  if(!fb.modules||!fb.db)return;
+  try{
+    const{doc,getDoc}=fb.modules;
+    const snap=await getDoc(doc(fb.db,ADMIN_PIN_COLLECTION,ADMIN_PIN_DOC));
+    if(snap.exists())_cachedPinHash=snap.data().hash||null;
+  }catch(e){console.warn("Could not load admin PIN:",e.message);}
+}
+
+async function savePinHash(hash){
+  if(!fb.modules||!fb.db)return false;
+  try{
+    const{doc,setDoc}=fb.modules;
+    await setDoc(doc(fb.db,ADMIN_PIN_COLLECTION,ADMIN_PIN_DOC),{hash});
+    _cachedPinHash=hash;
+    return true;
+  }catch(e){console.warn("Could not save admin PIN:",e.message);return false;}
+}
+
+function hashPin(pin){
+  let h=5381;for(let i=0;i<pin.length;i++)h=((h<<5)+h)+pin.charCodeAt(i)>>>0;
+  return h.toString(36);
+}
+
+function requirePin(onSuccess){
+  const existing=document.getElementById("pin-modal");
+  if(existing)existing.remove();
+  const hasPin=!!_cachedPinHash;
+  const modal=document.createElement("div");
+  modal.id="pin-modal";
+  modal.style.cssText="position:fixed;inset:0;z-index:998;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)";
+  modal.innerHTML=`
+    <div style="background:var(--bg);border-radius:var(--radius-xl);padding:28px 24px;max-width:320px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.3);animation:popIn .3s cubic-bezier(.34,1.56,.64,1)">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--brand-light);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+          <i class="ti ti-lock" style="font-size:24px;color:var(--brand)"></i>
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px">${hasPin?"Admin PIN Required":"Set Admin PIN"}</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.5">${hasPin?"Revenue &amp; budget imports are restricted.":"Create a PIN — only you will know it."}</div>
+      </div>
+      <input id="pin-input" type="password" inputmode="numeric" maxlength="8" placeholder="${hasPin?"Enter PIN":"Choose a PIN (min 4 digits)"}" style="text-align:center;font-size:22px;letter-spacing:6px;margin-bottom:10px;border:2px solid var(--border-2);border-radius:var(--radius-md);padding:12px;background:var(--bg);color:var(--text);width:100%">
+      <div id="pin-error" style="color:var(--danger-text);font-size:12px;text-align:center;min-height:18px;margin-bottom:10px"></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button id="pin-submit" onclick="submitPin()" style="background:var(--brand);color:#fff;border:none;border-radius:var(--radius-lg);padding:14px;font-size:15px;font-weight:800;cursor:pointer;width:100%">${hasPin?"Unlock":"Set PIN &amp; Continue"}</button>
+        <button onclick="document.getElementById('pin-modal').remove()" style="background:var(--bg-2);color:var(--text-2);border:1.5px solid var(--border-2);border-radius:var(--radius-lg);padding:13px;font-size:14px;font-weight:600;cursor:pointer;width:100%">Cancel</button>
+      </div>
+    </div>`;
+  modal.addEventListener("keydown",e=>{if(e.key==="Enter")submitPin();});
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById("pin-input")?.focus(),100);
+  window._pinSuccess=onSuccess;
+}
+
+window.submitPin=async function(){
+  const inp=document.getElementById("pin-input");
+  const err=document.getElementById("pin-error");
+  const pin=(inp?.value||"").trim();
+  if(!pin||pin.length<4){err.textContent="PIN must be at least 4 digits.";return;}
+  const btn=document.getElementById("pin-submit");
+  btn.textContent="Checking…";btn.disabled=true;
+  if(!_cachedPinHash){
+    // First time — save to Firestore
+    const ok=await savePinHash(hashPin(pin));
+    document.getElementById("pin-modal")?.remove();
+    if(ok){showToast("Admin PIN set — imports unlocked");if(window._pinSuccess)window._pinSuccess();render();}
+    else showToast("⚠ Could not save PIN — check Firebase connection");
+  } else {
+    if(hashPin(pin)===_cachedPinHash){
+      document.getElementById("pin-modal")?.remove();
+      if(window._pinSuccess)window._pinSuccess();
+    } else {
+      err.textContent="Incorrect PIN.";
+      inp.value="";btn.textContent="Unlock";btn.disabled=false;
+      inp.style.borderColor="var(--danger-text)";inp.focus();
+      setTimeout(()=>{inp.style.borderColor="var(--border-2)";},800);
+    }
+  }
+};
+
+window.changePinFlow=function(){
+  requirePin(async()=>{
+    _cachedPinHash=null; // clear so requirePin shows "set" mode
+    requirePin(async()=>{showToast("Admin PIN updated");render();});
+  });
+};
+
+window.clearPin=function(){
+  requirePin(async()=>{
+    if(!fb.modules||!fb.db){showToast("Not connected to Firebase");return;}
+    try{
+      const{doc,deleteDoc}=fb.modules;
+      await deleteDoc(doc(fb.db,ADMIN_PIN_COLLECTION,ADMIN_PIN_DOC));
+      _cachedPinHash=null;
+      showToast("Admin PIN removed");render();
+    }catch(e){showToast("⚠ Could not remove PIN");}
+  });
+};
+window.importRevenueXL=function(){requirePin(()=>{_importRevenueXL();});};
+window._importRevenueXL=function(){
   const inp=document.createElement("input");inp.type="file";inp.accept=".xlsx,.xls,.csv";
   inp.onchange=async(e)=>{
     const f=e.target.files[0];if(!f)return;
@@ -1115,7 +1345,8 @@ window.downloadRevenueTemplate=function(){
 };
 
 // ---- Budget Excel import ----
-window.importBudgetXL=function(){
+window.importBudgetXL=function(){requirePin(()=>{_importBudgetXL();});};
+window._importBudgetXL=function(){
   const inp=document.createElement("input");inp.type="file";inp.accept=".xlsx,.xls,.csv";
   inp.onchange=async(e)=>{
     const f=e.target.files[0];if(!f)return;
@@ -1176,7 +1407,8 @@ window.downloadImportTemplate=function(){
   showToast("Template downloaded");
 };
 
-window.importBulkXL=function(){
+window.importBulkXL=function(){_importBulkXL();};
+window._importBulkXL=function(){
   const inp=document.createElement("input");inp.type="file";inp.accept=".xlsx,.xls,.csv";
   inp.onchange=async(e)=>{
     const f=e.target.files[0];if(!f)return;
@@ -1187,11 +1419,7 @@ window.importBulkXL=function(){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{defval:""});
       if(!rows.length){showToast("No data found");return;}
 
-      // Pause listeners during import to prevent Firestore overwriting in-memory changes
-      const wasLiveBulk=st.syncStatus==="live";
-      if(wasLiveBulk&&fb.unsubBranches){fb.unsubBranches.forEach(u=>u());fb.unsubBranches=null;}
-
-      // Reverse-lookup maps
+      // ---- PARSE PHASE — build preview, don't touch state ----
       const ATT_REV={};Object.entries(ATT_L).forEach(([k,v])=>{ATT_REV[v.toLowerCase()]=k;});
       const RS_REV={};Object.entries(RSL).forEach(([k,v])=>{RS_REV[v.toLowerCase()]=k;});
 
@@ -1219,9 +1447,166 @@ window.importBulkXL=function(){
         return null;
       }
 
-      let updated=0,skipped=0;
-      const affected=new Set();
-      const affectedDates=new Map();
+      // Build preview list without touching state
+      const preview=[]; // [{bid,dk,routeId,driver,status,routeStatus,assets,locs,missed,safety,isNew}]
+      let skippedPrev=0;
+      rows.forEach(row=>{
+        const routeId=String(row["Route"]||"").trim();
+        const dk=toDateKey(row["Date"]);
+        if(!routeId||!dk){skippedPrev++;return;}
+        const bid=rowToBranch(row,routeId);
+        if(!bid){skippedPrev++;return;}
+        const brf=st.branchBriefings[bid]||{};
+        const b=brf[dk];
+        const existingRoute=b?.routes?.find(rt=>rt.id===routeId||rt.id.toLowerCase()===routeId.toLowerCase());
+        const g=col=>{const v=row[col];return(v===undefined||v===null||v==="")?"":String(v).trim();};
+        const numOr=col=>{const n=parseFloat(g(col));return isNaN(n)?null:n;};
+        const fltOr=col=>{const n=parseFloat(g(col));return isNaN(n)?null:n;};
+        const attRaw=g("Attendance")||g("Driver Attendance")||g("Status")||"";
+        const rsRaw=g("Route Status")||"";
+        const driver=g("Today's Driver")||g("Driver")||"";
+        const assets=numOr("Assets Scheduled")||numOr("Assets")||null;
+        const locs=numOr("Locations Scheduled")||numOr("Locations")||null;
+        const missed=numOr("Missed Services")||numOr("Missed")||null;
+        const safety=fltOr("Safety Score")||fltOr("Safety")||null;
+        const status=ATT_REV[attRaw.toLowerCase()]||null;
+        const routeStatus=RS_REV[rsRaw.toLowerCase()]||null;
+        const hasData=driver||assets!==null||locs!==null||missed!==null||safety!==null||status||routeStatus;
+        if(!hasData){skippedPrev++;return;}
+        preview.push({bid,dk,routeId,driver,status,routeStatus,assets,locs,missed,safety,isNew:!existingRoute,branchLabel:BRANCHES[bid].label});
+      });
+
+      if(!preview.length){showToast("Nothing to import — all rows empty or unrecognized");return;}
+
+      // ---- PREVIEW MODAL ----
+      // Group by branch → date
+      const grouped={};
+      preview.forEach(p=>{
+        const key=p.bid;
+        if(!grouped[key])grouped[key]={label:p.branchLabel,dates:{}};
+        if(!grouped[key].dates[p.dk])grouped[key].dates[p.dk]=[];
+        grouped[key].dates[p.dk].push(p);
+      });
+
+      const totalRoutes=preview.length;
+      const totalBranches=Object.keys(grouped).length;
+      const totalDates=new Set(preview.map(p=>p.dk)).size;
+      const MAX_ROWS=60;
+      let rowsShown=0;
+
+      let tableHTML="";
+      for(const [bid,branch] of Object.entries(grouped)){
+        tableHTML+=`<div style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.07em;padding:6px 0 4px;border-bottom:1.5px solid var(--border);margin-bottom:6px">${esc(branch.label)}</div>`;
+        for(const [dk,routes] of Object.entries(branch.dates).sort()){
+          const d=new Date(dk+"T12:00:00");
+          const dayLabel=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+          tableHTML+=`<div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px;padding-left:6px;border-left:2px solid var(--border-2)">${dayLabel}</div>`;
+          routes.forEach(r=>{
+            if(rowsShown>=MAX_ROWS)return;
+            rowsShown++;
+            const chips=[];
+            if(r.status)chips.push(`<span style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;background:${r.status==="yes"?"var(--ok-bg)":r.status==="no"?"var(--danger-bg)":"var(--warn-bg)"};color:${r.status==="yes"?"var(--ok-text)":r.status==="no"?"var(--danger-text)":"var(--warn-text)"}">${ATT_L[r.status]||r.status}</span>`);
+            if(r.routeStatus)chips.push(`<span style="font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;background:var(--bg-3);color:var(--text-2)">${RSL[r.routeStatus]||r.routeStatus}</span>`);
+            if(r.assets!==null)chips.push(`<span style="font-size:10px;color:var(--text-3)">${r.assets}a</span>`);
+            if(r.locs!==null)chips.push(`<span style="font-size:10px;color:var(--text-3)">${r.locs}l</span>`);
+            if(r.missed!==null&&r.missed>0)chips.push(`<span style="font-size:10px;color:var(--danger-text);font-weight:700">${r.missed} missed</span>`);
+            if(r.safety!==null)chips.push(`<span style="font-size:10px;color:var(--text-3)">safety ${r.safety}</span>`);
+            tableHTML+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 6px;border-bottom:0.5px solid var(--border);${r.isNew?"background:var(--ok-bg);border-radius:var(--radius-md);margin-bottom:2px":""}">
+              ${r.isNew?`<span style="font-size:9px;font-weight:800;color:var(--ok-text);background:var(--ok-bg);padding:2px 5px;border-radius:8px;flex-shrink:0;margin-top:2px">NEW</span>`:`<span style="width:26px;flex-shrink:0"></span>`}
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <span style="color:var(--text-3);font-size:10px;letter-spacing:.04em">${esc(r.routeId)}</span>
+                  ${r.driver?`<span style="color:var(--text)">${esc(r.driver)}</span>`:""}
+                </div>
+                ${chips.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">${chips.join("")}</div>`:""}
+              </div>
+            </div>`;
+          });
+        }
+        tableHTML+="</div>";
+      }
+      const overflow=totalRoutes-rowsShown;
+
+      const modal=document.createElement("div");
+      modal.id="bulk-preview-modal";
+      modal.style.cssText="position:fixed;inset:0;z-index:998;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)";
+      modal.innerHTML=`
+        <div style="background:var(--bg);border-radius:var(--radius-xl) var(--radius-xl) 0 0;width:100%;max-width:540px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 -12px 48px rgba(0,0,0,.22);animation:slideUp .3s cubic-bezier(.2,.8,.3,1)">
+          <!-- Header -->
+          <div style="padding:20px 20px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+              <div>
+                <div style="font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.2px">Preview Import</div>
+                <div style="font-size:12px;color:var(--text-2);margin-top:3px">Review changes before they're applied</div>
+              </div>
+              <button onclick="document.getElementById('bulk-preview-modal').remove()" style="padding:6px;border:none;background:var(--bg-2);border-radius:50%;color:var(--text-2);font-size:18px;flex-shrink:0;line-height:1;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center"><i class="ti ti-x"></i></button>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:var(--bg-2);border-radius:var(--radius-md);padding:8px;text-align:center;border:1px solid var(--border)">
+                <div style="font-size:18px;font-weight:800;color:var(--brand)">${totalRoutes}</div>
+                <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Routes</div>
+              </div>
+              <div style="flex:1;background:var(--bg-2);border-radius:var(--radius-md);padding:8px;text-align:center;border:1px solid var(--border)">
+                <div style="font-size:18px;font-weight:800;color:var(--text)">${totalDates}</div>
+                <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Days</div>
+              </div>
+              <div style="flex:1;background:var(--bg-2);border-radius:var(--radius-md);padding:8px;text-align:center;border:1px solid var(--border)">
+                <div style="font-size:18px;font-weight:800;color:var(--text)">${totalBranches}</div>
+                <div style="font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Branches</div>
+              </div>
+              ${skippedPrev>0?`<div style="flex:1;background:var(--warn-bg);border-radius:var(--radius-md);padding:8px;text-align:center;border:1px solid var(--warn-border)">
+                <div style="font-size:18px;font-weight:800;color:var(--warn-text)">${skippedPrev}</div>
+                <div style="font-size:10px;color:var(--warn-text);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Skipped</div>
+              </div>`:""}
+            </div>
+          </div>
+          <!-- Scrollable route list -->
+          <div style="flex:1;overflow-y:auto;padding:14px 20px">
+            <div style="font-size:10px;color:var(--text-3);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+              <span style="display:inline-flex;align-items:center;gap:3px;background:var(--ok-bg);color:var(--ok-text);padding:2px 7px;border-radius:8px;font-weight:800;font-size:9px">NEW</span>
+              = route not currently in briefing
+            </div>
+            ${tableHTML}
+            ${overflow>0?`<div style="text-align:center;padding:12px;font-size:12px;color:var(--text-3);font-weight:600">…and ${overflow} more route${overflow!==1?"s":""} not shown</div>`:""}
+          </div>
+          <!-- Action buttons -->
+          <div style="padding:14px 20px calc(max(env(safe-area-inset-bottom),14px));border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">
+            <button onclick="document.getElementById('bulk-preview-modal').remove()" style="flex:1;background:var(--bg-2);color:var(--text);border:1.5px solid var(--border-2);border-radius:var(--radius-lg);padding:14px;font-size:14px;font-weight:700;cursor:pointer">Cancel</button>
+            <button onclick="confirmBulkImport()" style="flex:2;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-lg);padding:14px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px rgba(199,58,13,.35)"><i class="ti ti-check" style="margin-right:6px"></i>Confirm — Import ${totalRoutes} Routes</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+
+      // Store parsed rows for use after confirmation
+      window._pendingBulkRows=rows;
+      window._pendingBulkHelpers={ATT_REV,RS_REV,routeToBranch,rowToBranch,toDateKey};
+
+    }catch(err){console.error(err);alert("Preview failed: "+(err.message||err));}
+  };
+  inp.click();
+};
+
+window.confirmBulkImport=async function(){
+  const modal=document.getElementById("bulk-preview-modal");
+  if(modal){
+    // Swap buttons to loading state
+    const btn=modal.querySelector("button:last-child");
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin .8s linear infinite"></i> Importing…';}
+  }
+
+  const rows=window._pendingBulkRows||[];
+  const{ATT_REV,RS_REV,routeToBranch,rowToBranch,toDateKey}=window._pendingBulkHelpers||{};
+  if(!rows.length){modal?.remove();return;}
+
+  // ---- WRITE PHASE (same logic as before) ----
+  try{
+  const wasLiveBulk=st.syncStatus==="live";
+  if(wasLiveBulk&&fb.unsubBranches){fb.unsubBranches.forEach(u=>u());fb.unsubBranches=null;}
+
+  let updated=0,skipped=0;
+  const affected=new Set();
+  const affectedDates=new Map();
 
       rows.forEach(row=>{
         const routeId=String(row["Route"]||"").trim();
@@ -1309,6 +1694,8 @@ window.importBulkXL=function(){
         }
       });
       st.briefings=st.branchBriefings[st.branch]||{};
+      document.getElementById("bulk-preview-modal")?.remove();
+      window._pendingBulkRows=null;window._pendingBulkHelpers=null;
       render();
       showToast("Imported "+updated+" route"+(updated!==1?"s":"")+" across "+affected.size+" branch"+(affected.size!==1?"es":"")+(skipped?" · "+skipped+" skipped":"")+" · syncing…");
       if(wasLiveBulk&&bulkWrites.length){
@@ -1317,9 +1704,7 @@ window.importBulkXL=function(){
           showToast("Sync complete — "+bulkWrites.length+" document"+(bulkWrites.length!==1?"s":"")+" written");
         });
       }
-    }catch(err){console.error(err);alert("Import failed: "+(err.message||err));}
-  };
-  inp.click();
+    }catch(err){console.error(err);document.getElementById("bulk-preview-modal")?.remove();alert("Import failed: "+(err.message||err));}
 };
 window.wipeAll=function(){if(!confirm("Delete ALL data?"))return;if(!confirm("Really sure?"))return;if(st.syncStatus==="live"){const{doc,deleteDoc}=fb.modules;Object.keys(st.briefings).forEach(k=>{try{deleteDoc(doc(fb.db,BRANCHES[st.branch].collection,k));}catch(e){}});}st.briefings={};persistLocal();render();showToast("All data deleted");};
 window.startFbSetup=function(){st.tab="fbsetup";render();};
@@ -1358,14 +1743,15 @@ function renderRoute(r,i){
   ].filter(Boolean).join(""):"";
   return`<div class="route-card">
     <div class="route-head" onclick="toggleRoute(${i})">
-      <div class="sdot ${ATT_D[r.status]}"></div>
-      <i class="ti ${RSI[rs]}" style="color:${RSC[rs]};font-size:16px;flex-shrink:0"></i>
-      <span class="r-id">${esc(r.id)}</span>
+      <div class="sdot ${ATT_D[r.status]}" style="margin-top:2px;align-self:flex-start"></div>
       <div style="flex:1;min-width:0;overflow:hidden">
-        <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.driver||"—")}${(r.secondDriver&&r.secondDriver!=="__pending__")?` <span style="color:var(--text-2);font-weight:400;font-size:12px">+${esc(r.secondDriver)}</span>`:""}${(r.thirdDriver&&r.thirdDriver!=="__pending__")?` <span style="color:var(--text-2);font-weight:400;font-size:12px">+${esc(r.thirdDriver)}</span>`:""}${coverBadge}</div>
-        ${summaryChips?`<div style="display:flex;gap:4px;margin-top:2px;align-items:center">${summaryChips}</div>`:""}
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:1px">
+          <span style="font-size:10px;font-weight:800;color:var(--text-3);letter-spacing:.06em;flex-shrink:0">${esc(r.id)}</span>
+          <span class="rs-chip ${RSCHIP[rs]}" style="flex-shrink:0;margin-left:auto"><i class="ti ${RSI[rs]}" style="font-size:10px"></i>${RSL[rs]}</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px;line-height:1.3">${esc(r.driver||"—")}${(r.secondDriver&&r.secondDriver!=="__pending__")?` <span style="color:var(--text-2);font-weight:500;font-size:12px">+${esc(r.secondDriver)}</span>`:""}${(r.thirdDriver&&r.thirdDriver!=="__pending__")?` <span style="color:var(--text-2);font-weight:500;font-size:12px">+${esc(r.thirdDriver)}</span>`:""}${coverBadge}</div>
+        ${summaryChips?`<div style="display:flex;gap:4px;margin-top:3px;align-items:center">${summaryChips}</div>`:""}
       </div>
-      <span class="rs-chip ${RSCHIP[rs]}" style="flex-shrink:0"><i class="ti ${RSI[rs]}" style="font-size:10px"></i>${RSL[rs]}</span>
       <i class="ti ti-chevron-down chev${isOpen?" open":""}"></i>
     </div>
     <div class="route-body${isOpen?" open":""}">
@@ -1620,13 +2006,32 @@ function renderEntry(){
     <span class="date-badge" style="font-weight:500;cursor:${!isToday?'pointer':''}" onclick="${!isToday?'jumpToday()':''}" title="${!isToday?'Tap to go to today':''}">${fmtS(sk)}${isToday?' ·  Today':''}</span>
     <button onclick="nextDay()" style="padding:6px 10px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:16px;min-height:36px;display:flex;align-items:center;justify-content:center"><i class="ti ti-chevron-right" style="font-size:16px"></i></button>
   </div></div>
-  <div style="margin-bottom:14px"><select style="font-family:inherit;font-size:14px;font-weight:600;color:var(--brand);background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:var(--radius-md);padding:7px 12px;cursor:pointer;width:100%" onchange="switchBranch(this.value)">${[...BRANCH_IDS].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label)).map(bid=>`<option value="${bid}"${bid===st.branch?" selected":""}>${BRANCHES[bid].label}</option>`).join("")}</select></div>
-  <div class="status-bar">
-    <div class="sb-item"><div class="sb-num" style="color:var(--ok-text)">${finished}</div><div class="sb-lbl">Done</div></div>
-    <div class="sb-item" style="border-left:0.5px solid var(--border);border-right:0.5px solid var(--border)"><div class="sb-num" style="color:var(--warn-text)">${inProg}</div><div class="sb-lbl">In Progress</div></div>
-    <div class="sb-item" style="border-right:0.5px solid var(--border)"><div class="sb-num" style="color:var(--text-2)">${notStart}</div><div class="sb-lbl">Not Started</div></div>
-    <div class="sb-item"><div class="sb-num" style="color:${s.totalMissed>0?'var(--danger-text)':'var(--text-2)'}">${s.totalMissed}</div><div class="sb-lbl">Missed</div></div>
-  </div>
+  ${branchPill()}
+  ${(()=>{
+    // Progress ring — routes finished / total
+    const pct=total>0?finished/total:0;
+    const R=30,C=2*Math.PI*R;
+    const dash=C*pct,gap=C-dash;
+    const ringColor=pct===1?'var(--ok-line)':pct>0?'var(--warn-line)':'var(--border-2)';
+    return`<div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:10px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+        <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg)">
+          <circle cx="36" cy="36" r="${R}" fill="none" stroke="var(--bg-3)" stroke-width="7"/>
+          <circle cx="36" cy="36" r="${R}" fill="none" stroke="${ringColor}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash} ${gap}" style="transition:stroke-dasharray .6s cubic-bezier(.2,.8,.3,1)"/>
+        </svg>
+        <div style="position:absolute;width:72px;height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+          <div style="font-size:17px;font-weight:800;letter-spacing:-.5px;line-height:1">${finished}<span style="font-size:11px;font-weight:600;color:var(--text-3)">/${total}</span></div>
+          <div style="font-size:8px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">routes</div>
+        </div>
+      </div>
+      <div class="status-bar" style="margin-bottom:0;flex:1">
+        <div class="sb-item"><div class="sb-num" style="color:var(--ok-text)">${finished}</div><div class="sb-lbl">Done</div></div>
+        <div class="sb-item" style="border-left:0.5px solid var(--border);border-right:0.5px solid var(--border)"><div class="sb-num" style="color:var(--warn-text)">${inProg}</div><div class="sb-lbl">In Prog</div></div>
+        <div class="sb-item" style="border-right:0.5px solid var(--border)"><div class="sb-num" style="color:var(--text-2)">${notStart}</div><div class="sb-lbl">Pending</div></div>
+        <div class="sb-item"><div class="sb-num" style="color:${s.totalMissed>0?'var(--danger-text)':'var(--text-2)'}">${s.totalMissed}</div><div class="sb-lbl">Missed</div></div>
+      </div>
+    </div>`;
+  })()}
   ${stepperHTML(b.checkInStatus,true)}
   ${isToday&&b.checkInStatus==="not_started"?renderRecapCard():""}
   <div class="section">
@@ -1682,7 +2087,7 @@ function renderSum(b,opts={}){
     <button onclick="nextDay()" style="padding:6px 10px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:16px;min-height:36px;display:flex;align-items:center;justify-content:center"><i class="ti ti-chevron-right" style="font-size:16px"></i></button>
   </div>`:`<span class="date-badge">${fmtS(b.date)}</span>`}
   </div>`:""}
-  ${opts.isToday?`<div style="margin-bottom:14px"><select style="font-family:inherit;font-size:14px;font-weight:600;color:var(--brand);background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:var(--radius-md);padding:7px 12px;cursor:pointer;width:100%" onchange="switchBranch(this.value)">${[...BRANCH_IDS].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label)).map(bid=>`<option value="${bid}"${bid===st.branch?" selected":""}>${BRANCHES[bid].label}</option>`).join("")}</select></div>`:""}
+  ${opts.isToday?`${branchPill()}`:""}
   ${stepperHTML(b.checkInStatus,!!opts.isToday)}
   <div class="kpi-grid">
     <div class="kpi"><div class="kpi-lbl">On-Time Delivery</div><div class="kpi-val ${s.otPct===null?"":(s.otPct>=95?"kv-s":s.otPct>=85?"kv-w":"kv-d")}">${s.otPct===null?"—":s.otPct+"%"}</div>${prev?delta(s.otPct,prev.otPct,false):""}</div>
@@ -1801,13 +2206,24 @@ function renderTrends(){
     <button class="range-btn${st.trendRange===0?" on":""}" onclick="setRange(0)">All</button>
   </div>
   ${empty?`<div class="empty-state"><i class="ti ti-chart-line"></i><div class="empty-state-title">No data to chart yet</div><div class="empty-state-sub">Publish a few briefings on the Today tab and trends will appear here automatically.</div></div>`:`
+  ${(()=>{
+    // Last-7-day series for sparklines (oldest → newest)
+    const last7=dates.slice(0,7).reverse();
+    const otSeries=last7.map(d=>{const s2=bStats(st.briefings[d]);return s2.otPct;});
+    const sfSeries=last7.map(d=>{const s2=bStats(st.briefings[d]);return s2.avgSafety;});
+    const revSeries=last7.map(d=>getBranchDayRevenue(st.branch,d)||null);
+    window._sparkOT=sparkline(otSeries);
+    window._sparkSF=sparkline(sfSeries);
+    window._sparkRev=sparkline(revSeries,"var(--brand)");
+    return"";
+  })()}
   <div class="kpi-grid">
-    <div class="kpi"><div class="kpi-lbl">Avg On-Time</div><div class="kpi-val ${avgOT===null?"":(avgOT>=95?"kv-s":avgOT>=85?"kv-w":"kv-d")}">${avgOT===null?"—":avgOT+"%"}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Avg Safety</div><div class="kpi-val ${avgSafety===null?"":(avgSafety>=95?"kv-s":avgSafety>=85?"kv-w":"kv-d")}">${avgSafety===null?"—":avgSafety}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg On-Time</div><div class="kpi-val ${avgOT===null?"":(avgOT>=95?"kv-s":avgOT>=85?"kv-w":"kv-d")}">${avgOT===null?"—":avgOT+"%"}</div>${window._sparkOT||""}</div>
+    <div class="kpi"><div class="kpi-lbl">Avg Safety</div><div class="kpi-val ${avgSafety===null?"":(avgSafety>=95?"kv-s":avgSafety>=85?"kv-w":"kv-d")}">${avgSafety===null?"—":avgSafety}</div>${window._sparkSF||""}</div>
     <div class="kpi"><div class="kpi-lbl">Days tracked</div><div class="kpi-val">${dates.length}</div></div>
     <div class="kpi"><div class="kpi-lbl">Total Missed</div><div class="kpi-val ${tM===0?"kv-s":"kv-d"}">${tM}</div></div>
     <div class="kpi"><div class="kpi-lbl">Clean Days</div><div class="kpi-val kv-s">${clean}</div></div>
-    ${hasRev?`<div class="kpi"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val" style="font-size:18px;color:var(--brand)">${fmtMoneyAbbr(tRev)}</div></div>`:""}
+    ${hasRev?`<div class="kpi"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val" style="font-size:18px;color:var(--brand)">${fmtMoneyAbbr(tRev)}</div>${window._sparkRev||""}</div>`:""}
     ${hasSpoilsShrink&&hasRev?`<div class="kpi"><div class="kpi-lbl">Spoils % Rev</div><div class="kpi-val kv-d" style="font-size:18px">${spoilsPct!==null?spoilsPct+"%":"—"}</div><div style="font-size:10px;color:var(--text-2);margin-top:2px">${fmtMoneyAbbr(tSpoils)}</div></div>`:""}
     ${hasSpoilsShrink&&hasRev?`<div class="kpi"><div class="kpi-lbl">${shrinkIsNeg?"Neg Shrink":"Shrink"} % Rev</div><div class="kpi-val kv-d" style="font-size:18px">${shrinkPct!==null?shrinkPct+"%":"—"}</div><div style="font-size:10px;color:var(--text-2);margin-top:2px">${shrinkIsNeg?"-":""}${fmtMoneyAbbr(Math.abs(tShrink))}</div></div>`:""}
   </div>
@@ -1876,12 +2292,7 @@ function renderSettings(){
   const rList=branchRoutes(routesBid);
   return`<div class="app-header"><div><div class="app-title">Settings</div><div class="app-sub">Data, sync &amp; backup ${syncPill()}</div></div></div>
   <span class="section-lbl">Branch</span>
-  <div class="card" style="margin-bottom:14px">
-    <div class="setting-row">
-      <div class="setting-info"><div class="setting-title">Active branch</div><div class="setting-desc">Each branch stores data separately.</div></div>
-      <select style="font-family:inherit;font-size:13px;font-weight:500;color:var(--text);background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:var(--radius-md);padding:6px 10px;cursor:pointer;flex-shrink:0" onchange="switchBranch(this.value)">${[...BRANCH_IDS].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label)).map(bid=>`<option value="${bid}"${bid===st.branch?" selected":""}>${BRANCHES[bid].label}</option>`).join("")}</select>
-    </div>
-  </div>
+  <div style="margin-bottom:14px">${branchPill()}</div>
   <span class="section-lbl">Route management</span>
   <div class="card" style="margin-bottom:14px">
     <div class="setting-row" style="cursor:pointer" onclick="st.routeMgmtOpen=!st.routeMgmtOpen;render()">
@@ -1960,12 +2371,12 @@ function renderSettings(){
   <div class="card" style="margin-bottom:14px">
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Saved briefings</div><div class="setting-desc">${count} day${count===1?"":"s"} in history for ${activeBranch().label}</div></div></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Export to Excel</div><div class="setting-desc">Daily summary · route details · driver stats (current branch)</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="exportXL()"><i class="ti ti-file-spreadsheet"></i> Excel</button></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-title">Import Revenue from Excel</div><div class="setting-desc">Import per-route revenue (Vending/Market/OCS) by date, branch &amp; route ID. Leave Route blank for branch-level. <button onclick="downloadRevenueTemplate()" style="color:var(--blue);text-decoration:underline;font-size:inherit;padding:0;background:none;border:none;cursor:pointer">Template →</button></div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="importRevenueXL()"><i class="ti ti-table-import"></i> Import</button></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">Import PIN</div><div class="setting-desc">${_cachedPinHash?"PIN set — revenue &amp; budget imports are admin-only.":"No PIN set — revenue &amp; budget imports are unprotected."}</div></div><div style="display:flex;gap:6px;flex-shrink:0">${_cachedPinHash?`<button class="btn-sec" style="font-size:12px;padding:7px 11px;min-height:36px" onclick="changePinFlow()"><i class="ti ti-refresh"></i> Change</button><button class="btn-sec btn-danger" style="font-size:12px;padding:7px 11px;min-height:36px" onclick="clearPin()"><i class="ti ti-lock-open"></i> Remove</button>`:`<button class="btn-sec" style="font-size:12px;padding:7px 11px;min-height:36px;background:var(--brand);color:#fff;border-color:var(--brand)" onclick="requirePin(()=>{showToast('Admin PIN set');render();})"><i class="ti ti-lock"></i> Set PIN</button>`}</div></div><div class="setting-row"><div class="setting-info"><div class="setting-title">Import Revenue from Excel</div><div class="setting-desc">Import per-route revenue (Vending/Market/OCS) by date, branch &amp; route ID. Leave Route blank for branch-level. <button onclick="downloadRevenueTemplate()" style="color:var(--blue);text-decoration:underline;font-size:inherit;padding:0;background:none;border:none;cursor:pointer">Template →</button></div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="importRevenueXL()"><i class="ti ti-table-import"></i> Import</button></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Import Budgets from Excel</div><div class="setting-desc">Set monthly Vending/Market/OCS budgets per branch. <button onclick="downloadBudgetTemplate()" style="color:var(--blue);text-decoration:underline;font-size:inherit;padding:0;background:none;border:none;cursor:pointer">Template →</button></div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="importBudgetXL()"><i class="ti ti-table-import"></i> Import</button></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Export JSON backup</div><div class="setting-desc">Full data backup for current branch</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="exportJSON()"><i class="ti ti-download"></i> JSON</button></div>
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Import JSON backup</div><div class="setting-desc">Restore from backup file</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="importJSON()"><i class="ti ti-upload"></i> Import</button></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-title">Test sync</div><div class="setting-desc">Write a test document to Firebase and confirm it succeeds</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="testSync()"><i class="ti ti-plug"></i> Test</button></div><div class="setting-desc">Fixes briefings showing wrong branch routes — runs automatically on load</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="runDataRepair()"><i class="ti ti-tools"></i> Repair</button></div>
-    <div class="setting-row"><div class="setting-info"><div class="setting-title">Delete all data</div><div class="setting-desc">Wipe all briefings &amp; history for current branch</div></div><button class="btn-sec btn-danger" style="flex:0 0 auto;min-width:90px" onclick="wipeAll()"><i class="ti ti-trash"></i> Delete</button></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">Test sync</div><div class="setting-desc">Write a test document to Firebase and confirm it succeeds</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="testSync()"><i class="ti ti-plug"></i> Test</button></div><div class="setting-row"><div class="setting-info"><div class="setting-title">Repair branch data</div><div class="setting-desc">Fixes briefings showing wrong branch routes — runs automatically on load</div></div><button class="btn-sec" style="flex:0 0 auto;min-width:90px" onclick="runDataRepair()"><i class="ti ti-tools"></i> Repair</button></div>
+    <div class="setting-row"><div class="setting-info"><div class="setting-title">Delete all data</div><div class="setting-desc">Wipe all briefings &amp; history for current branch</div></div><button class="btn-sec btn-danger" style="flex:0 0 auto;min-width:90px" onclick="requirePin(()=>wipeAll())"><i class="ti ti-trash"></i> Delete</button></div>
   </div>
   <div class="footer-note">Dallas DFW Morning Check-in · v4</div>`;
 }
@@ -2675,29 +3086,32 @@ function renderBudget(){
     </div>
   </div>`:""}
 
-  <span class="section-lbl">Set ${monthLabel(mk)} budget</span>
-  <div class="card">
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px">
-      <div class="field" style="margin-bottom:0">
-        <label class="field-lbl">🎰 Vending</label>
-        <input id="budget-vending" type="number" min="0" step="100" value="${budgetCats.vending||""}" placeholder="0">
+  ${monthlyBudget>0?`<div class="card" style="margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px">
+      <div style="text-align:center">
+        <div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">🎰 Vending</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${budgetCats.vending>0?fmtMoneyAbbr(budgetCats.vending):"—"}</div>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label class="field-lbl">🏪 Market</label>
-        <input id="budget-market" type="number" min="0" step="100" value="${budgetCats.market||""}" placeholder="0">
+      <div style="text-align:center">
+        <div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">🏪 Market</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${budgetCats.market>0?fmtMoneyAbbr(budgetCats.market):"—"}</div>
       </div>
-      <div class="field" style="margin-bottom:0">
-        <label class="field-lbl">☕ OCS</label>
-        <input id="budget-ocs" type="number" min="0" step="100" value="${budgetCats.ocs||""}" placeholder="0">
+      <div style="text-align:center">
+        <div style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">☕ OCS</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)">${budgetCats.ocs>0?fmtMoneyAbbr(budgetCats.ocs):"—"}</div>
       </div>
     </div>
-    ${monthlyBudget>0?`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px;padding:8px;background:var(--bg-2);border-radius:var(--radius-md);font-size:11px;text-align:center">
-      <div><div style="color:var(--text-2)">Workday target</div><div style="font-weight:500;color:var(--text)">${dailyWorkdayTarget>0?fmtMoneyAbbr(dailyWorkdayTarget):"—"}</div></div>
-      <div><div style="color:var(--text-2)">Weekend target</div><div style="font-weight:500;color:var(--text)">${dailyOffdayTarget>0?fmtMoneyAbbr(dailyOffdayTarget):"—"}</div></div>
-      <div><div style="color:var(--text-2)">Split</div><div style="font-weight:500;color:var(--text)">${Math.round(WORKDAY_SPLIT*100)}% / ${Math.round(OFFDAY_SPLIT*100)}%</div></div>
-    </div>`:""}
-    <button class="btn-primary" onclick="saveBudget()"><i class="ti ti-device-floppy"></i> Save Budget — Total ${monthlyBudget>0?fmtMoney(monthlyBudget+((parseFloat(document.getElementById("budget-vending")?.value)||0)-(budgetCats.vending||0))+((parseFloat(document.getElementById("budget-market")?.value)||0)-(budgetCats.market||0))+((parseFloat(document.getElementById("budget-ocs")?.value)||0)-(budgetCats.ocs||0))):"—"}/mo</button>
-  </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px;background:var(--bg-2);border-radius:var(--radius-md);font-size:11px;text-align:center">
+      <div><div style="color:var(--text-2)">Workday target</div><div style="font-weight:700;color:var(--text)">${dailyWorkdayTarget>0?fmtMoneyAbbr(dailyWorkdayTarget):"—"}</div></div>
+      <div><div style="color:var(--text-2)">Weekend target</div><div style="font-weight:700;color:var(--text)">${dailyOffdayTarget>0?fmtMoneyAbbr(dailyOffdayTarget):"—"}</div></div>
+      <div><div style="color:var(--text-2)">Split</div><div style="font-weight:700;color:var(--text)">${Math.round(WORKDAY_SPLIT*100)}% / ${Math.round(OFFDAY_SPLIT*100)}%</div></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-3);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ti ti-upload" style="font-size:13px"></i>Budget set via import in Settings</div>
+  </div>`:`<div class="card" style="margin-bottom:14px;text-align:center;padding:24px">
+    <i class="ti ti-chart-bar-off" style="font-size:32px;color:var(--text-3);margin-bottom:10px;display:block"></i>
+    <div style="font-size:14px;font-weight:700;color:var(--text-2);margin-bottom:4px">No budget set for ${monthLabel(mk)}</div>
+    <div style="font-size:12px;color:var(--text-3)">Import a budget file in <strong>Settings → Import Budget</strong></div>
+  </div>`}
   <div class="footer-note">Pacing calculated through yesterday — today's entries show once the day closes.</div>`;
 }
 
@@ -2724,7 +3138,7 @@ function renderNav(){
     <div class="nav-brand">
       <img src="icon.png" class="nav-brand-logo" alt="Dallas logo">
       <span class="nav-brand-title">${activeBranch().label} Daily Check-in</span>
-      <select style="font-family:inherit;font-size:12px;font-weight:600;color:var(--brand);background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:6px;padding:4px 8px;cursor:pointer;margin-top:6px;width:100%" onchange="switchBranch(this.value)">${[...BRANCH_IDS].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label)).map(bid=>`<option value="${bid}"${st.branch===bid?" selected":""}>${BRANCHES[bid].label}</option>`).join("")}</select>
+      <div style="margin-top:8px">${branchPill()}</div>
       <span class="nav-brand-sub">${syncPill()}</span>
     </div>
     ${tabs.map(t=>`<button class="nav-btn${active===t.id?" active":""}" onclick="switchTab('${t.id}')"><i class="ti ${t.icon}"></i><span>${t.label}</span></button>`).join("")}
@@ -2748,6 +3162,33 @@ function render(){
   renderNav();
   if(st.tab==="trends")setTimeout(drawCharts,10);
   if(st.tab==="budget")setTimeout(drawBudgetChart,10);
+  animateCounters();
+}
+
+// Animated count-up for KPI values (runs once per tab visit)
+let lastAnimatedTab=null;
+function animateCounters(){
+  if(lastAnimatedTab===st.tab)return; // only animate on tab change, not every keystroke render
+  lastAnimatedTab=st.tab;
+  document.querySelectorAll(".kpi-val").forEach(el=>{
+    const txt=el.textContent.trim();
+    // Match leading number with optional $ prefix, % suffix, K/M suffix, or x/y format
+    const m=txt.match(/^(\$?)([\d,]+(?:\.\d+)?)(%|K|M)?$/);
+    if(!m)return;
+    const prefix=m[1],suffix=m[3]||"";
+    const target=parseFloat(m[2].replace(/,/g,""));
+    if(isNaN(target)||target===0)return;
+    const decimals=(m[2].split(".")[1]||"").length;
+    const dur=520;const start=performance.now();
+    function tick(now){
+      const p=Math.min((now-start)/dur,1);
+      const eased=1-Math.pow(1-p,3); // ease-out cubic
+      const val=target*eased;
+      el.childNodes[0].textContent=prefix+val.toLocaleString("en-US",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})+suffix;
+      if(p<1)requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
 }
 
 function drawBudgetChart(){
