@@ -450,7 +450,7 @@ const BRANCH_ROUTES_KEY="branch_routes_v1";
 const BRANCH_SEL_KEY="branch_selected_v1";
 
 // ---- State ----
-let st={branch:"dallas",tab:"today",todayView:"entry",openIdx:null,detailDate:null,trendRange:30,briefings:{},branchBriefings:{},syncStatus:"local",syncError:"",managerName:"",selectedDate:null,rollupDate:null,branchRoutes:{},budgets:{},driverRange:30,notifSettings:{},routeMgmtOpen:false,showFinishedRoutes:false,attendanceMonth:null,attendanceDay:null,budgetMonth:null,recapDismissed:null,rollupPeriod:"monthly",rollupDM:"auto",recentBranches:[],branchPickerOpen:false};
+let st={branch:"dallas",tab:"today",todayView:"entry",openIdx:null,detailDate:null,trendRange:30,briefings:{},branchBriefings:{},syncStatus:"local",syncError:"",managerName:"",selectedDate:null,rollupDate:null,branchRoutes:{},budgets:{},driverRange:30,notifSettings:{},routeMgmtOpen:false,showFinishedRoutes:false,attendanceMonth:null,attendanceDay:null,budgetMonth:null,recapDismissed:null,rollupPeriod:"monthly",rollupDM:"auto",recentBranches:[],branchPickerOpen:false,rollupSort:"name"};
 let fb={app:null,db:null,unsubAll:null,unsubBudgets:null,modules:null};
 let wt=null;
 
@@ -2488,7 +2488,9 @@ function renderRollup(){
   // Always alphabetical by label
   const sortedBIDs=[...filteredBIDs].sort((a,b)=>BRANCHES[a].label.localeCompare(BRANCHES[b].label));
 
-  const branchStats=sortedBIDs.map(bid=>{
+  const sort=st.rollupSort||'name';
+
+  let branchStats=sortedBIDs.map(bid=>{
     const stats=aggregatePeriodStats(bid,dates);
     const prevDates=getPrevPeriodDates(period,dates);
     const prevStats=aggregatePeriodStats(bid,prevDates);
@@ -2496,6 +2498,13 @@ function renderRollup(){
     const todayB=brf[dk];
     return{bid,stats,prevStats,checkInStatus:todayB&&todayB.checkInStatus||'not_started',hasData:stats.daysWithData>0};
   });
+
+  // Apply sort
+  if(sort==='revenue')branchStats.sort((a,b)=>b.stats.revTotal-a.stats.revTotal);
+  else if(sort==='ot')branchStats.sort((a,b)=>{if(a.stats.otPct===null)return 1;if(b.stats.otPct===null)return-1;return b.stats.otPct-a.stats.otPct;});
+  else if(sort==='safety')branchStats.sort((a,b)=>{if(a.stats.avgSafety===null)return 1;if(b.stats.avgSafety===null)return-1;return b.stats.avgSafety-a.stats.avgSafety;});
+  else if(sort==='missed')branchStats.sort((a,b)=>b.stats.tM-a.stats.tM);
+  // default 'name' already alphabetical from sortedBIDs
   const hasAny=branchStats.some(x=>x.hasData);
   const act=branchStats.filter(x=>x.hasData);
   const cTA=act.reduce((a,x)=>a+x.stats.tA,0),cTM=act.reduce((a,x)=>a+x.stats.tM,0);
@@ -2506,6 +2515,10 @@ function renderRollup(){
   const cLate=act.reduce((a,x)=>a+x.stats.tLate,0),cOut=act.reduce((a,x)=>a+x.stats.tOut,0);
   const cLocs=act.reduce((a,x)=>a+x.stats.tLocs,0),cMR=act.reduce((a,x)=>a+x.stats.tMR,0);
   const cRev=act.reduce((a,x)=>a+x.stats.revTotal,0);
+  const sortToggle=`<div style="display:flex;gap:6px;margin-bottom:12px;font-size:11px">
+    <span style="color:var(--text-2);padding:6px 4px;align-self:center;font-weight:600;flex-shrink:0">Sort:</span>
+    ${[{k:'name',l:'A–Z'},{k:'revenue',l:'Revenue'},{k:'ot',l:'On-Time'},{k:'safety',l:'Safety'},{k:'missed',l:'Missed'}].map(s=>`<button class="range-btn${sort===s.k?' on':''}" onclick="st.rollupSort='${s.k}';render()" style="flex:1">${s.l}</button>`).join('')}
+  </div>`;
   const dmSelector=`<div style="margin-bottom:12px">
     <select onchange="st.rollupDM=this.value;render()" style="width:100%;padding:9px 12px;border:0.5px solid var(--border-2);border-radius:var(--radius-md);background:var(--bg-2);color:var(--text);font-size:13px;font-weight:500;min-height:38px">
       <option value="" ${!activeDM?'selected':''}>All Branches (${BRANCH_IDS.length})</option>
@@ -2529,6 +2542,7 @@ function renderRollup(){
     </div>
   </div>
   ${periodToggle}
+  ${sortToggle}
   ${dmSelector}
   ${!hasAny?`<div class="empty-state"><i class="ti ti-building-community"></i><div class="empty-state-title">No data for this ${period==='daily'?'date':period}</div><div class="empty-state-sub">Navigate to a ${period==='daily'?'date':period} where briefings have been entered.</div></div>`:`
   <span class="section-lbl">All Branches Combined</span>
