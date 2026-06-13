@@ -3307,7 +3307,7 @@ function getDriverStats(bid,days){
     if(dk>tk)return;
     b.routes.forEach(r=>{
       const key=r.assignedDriver||r.driver||r.id;
-      if(!drivers[key])drivers[key]={name:key,route:r.id,days:0,assetsTotal:0,missedTotal:0,lateCount:0,safetyScores:[],absenceDays:0};
+      if(!drivers[key])drivers[key]={name:key,route:r.id,days:0,assetsTotal:0,missedTotal:0,lateCount:0,safetyScores:[],absenceDays:0,revenueTotal:0};
       const d=drivers[key];
       d.days++;
       if(ABSENCE.includes(r.status)){d.absenceDays++;return;}
@@ -3317,6 +3317,8 @@ function getDriverStats(bid,days){
       if(r.safetyScore!==""&&r.safetyScore!==null&&r.safetyScore!==undefined){
         const sc=parseFloat(r.safetyScore);if(!isNaN(sc)&&sc>0)d.safetyScores.push(sc);
       }
+      // Revenue per route
+      if(r.revenue){d.revenueTotal+=parseMoney(r.revenue.vending)+parseMoney(r.revenue.market)+parseMoney(r.revenue.ocs);}
     });
   });
   return Object.values(drivers).map(d=>{
@@ -3326,7 +3328,8 @@ function getDriverStats(bid,days){
     const lateRate=activeDays>0?Math.round(d.lateCount/activeDays*100):0;
     const avgMissed=activeDays>0?Math.round(d.missedTotal/activeDays*10)/10:0;
     // Trend: compare last half vs first half of period
-    return{...d,activeDays,otPct,avgSafety,lateRate,avgMissed};
+    const avgRevenue=activeDays>0?Math.round(d.revenueTotal/activeDays):0;
+    return{...d,activeDays,otPct,avgSafety,lateRate,avgMissed,avgRevenue};
   }).filter(d=>d.days>0).sort((a,b)=>{
     // Sort: drivers with data first, by OT% desc
     if(a.otPct===null&&b.otPct!==null)return 1;
@@ -3359,6 +3362,7 @@ function renderDrivers(){
   if(sort==="safety")drivers.sort((a,b)=>{if(a.avgSafety===null)return 1;if(b.avgSafety===null)return-1;return b.avgSafety-a.avgSafety;});
   else if(sort==="missed")drivers.sort((a,b)=>b.avgMissed-a.avgMissed);
   else if(sort==="late")drivers.sort((a,b)=>b.lateRate-a.lateRate);
+  else if(sort==="revenue")drivers.sort((a,b)=>b.avgRevenue-a.avgRevenue);
   const rangeLabel={30:"Last 30 days",60:"Last 60 days",90:"Last 90 days",0:"All time"}[range]||"";
   const avgOT=drivers.filter(d=>d.otPct!==null);
   const branchOT=avgOT.length?Math.round(avgOT.reduce((a,d)=>a+d.otPct,0)/avgOT.length*10)/10:null;
@@ -3374,7 +3378,7 @@ function renderDrivers(){
   });
   html2+='</div><div style="display:flex;gap:6px;margin-bottom:16px;font-size:11px">';
   html2+='<span style="color:var(--text-2);padding:6px 4px;align-self:center">Sort:</span>';
-  [{k:"ot",l:"On-Time"},{k:"safety",l:"Safety"},{k:"missed",l:"Missed"},{k:"late",l:"Late"}].forEach(function(s){
+  [{k:"ot",l:"On-Time"},{k:"safety",l:"Safety"},{k:"missed",l:"Missed"},{k:"late",l:"Late"},{k:"revenue",l:"Revenue"}].forEach(function(s){
     html2+='<button class="range-btn'+(sort===s.k?' on':'')+'" onclick="setDriverSort(\''+ s.k +'\')" style="flex:1">'+s.l+'</button>';
   });
   html2+='</div>';
@@ -3384,7 +3388,10 @@ function renderDrivers(){
   } else {
     html2+='<div class="kpi-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:16px">';
     html2+='<div class="kpi"><div class="kpi-lbl">Branch On-Time</div><div class="kpi-val '+(branchOT===null?"":(branchOT>=95?"kv-s":branchOT>=85?"kv-w":"kv-d"))+'">'+(branchOT===null?"&mdash;":branchOT+"%")+'</div></div>';
-    html2+='<div class="kpi"><div class="kpi-lbl">Branch Safety</div><div class="kpi-val '+(avgSf===null?"":(avgSf>=95?"kv-s":avgSf>=85?"kv-w":"kv-d"))+'">'+(avgSf===null?"&mdash;":avgSf)+'</div></div></div>';
+    html2+='<div class="kpi"><div class="kpi-lbl">Branch Safety</div><div class="kpi-val '+(avgSf===null?"":(avgSf>=95?"kv-s":avgSf>=85?"kv-w":"kv-d"))+'">'+(avgSf===null?"&mdash;":avgSf)+'</div></div>';
+    const totalBranchRev=drivers.reduce((a,d)=>a+d.revenueTotal,0);
+    if(totalBranchRev>0)html2+='<div class="kpi" style="grid-column:1/-1"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val" style="color:var(--brand)">'+fmtMoneyAbbr(totalBranchRev)+'</div></div>';
+    html2+='</div>';
     drivers.forEach(function(d){
       const grade=driverGrade(d.otPct,d.avgSafety,d.lateRate,d.avgMissed);
       const otCls=d.otPct===null?"":(d.otPct>=95?"kv-s":d.otPct>=85?"kv-w":"kv-d");
@@ -3397,19 +3404,23 @@ function renderDrivers(){
       const gradeColor=grade.cls==="kv-s"?"var(--ok-text)":grade.cls==="kv-w"?"var(--warn-text)":grade.cls==="kv-d"?"var(--danger-text)":"var(--text)";
       html2+='<div class="card" style="margin-bottom:10px">';
       html2+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-      html2+='<div><div style="font-size:15px;font-weight:600">'+esc(d.name)+'</div>';
-      html2+='<div style="font-size:11px;color:var(--text-2);margin-top:2px">'+d.route+' &middot; '+d.activeDays+' active day'+(d.activeDays===1?"":"s")+'</div></div>';
+      html2+='<div><div style="font-size:15px;font-weight:700">'+esc(d.name)+'</div>';
+      html2+='<div style="font-size:11px;color:var(--text-2);margin-top:2px">'+d.route+' &middot; '+d.activeDays+' active day'+(d.activeDays===1?"":"s")+(d.revenueTotal>0?' &middot; <span style="color:var(--brand);font-weight:700">'+fmtMoneyAbbr(d.revenueTotal)+' total</span>':'')+'</div></div>';
       html2+='<div style="text-align:center;background:'+grade.bg+';border-radius:10px;padding:6px 14px;min-width:52px">';
-      html2+='<div style="font-size:22px;font-weight:700;color:'+gradeColor+';line-height:1">'+grade.label+'</div>';
-      html2+='<div style="font-size:9px;color:var(--text-2);margin-top:2px">GRADE</div></div></div>';
-      html2+='<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:'+(flags.length?'10':'0')+'px">';
+      html2+='<div style="font-size:22px;font-weight:800;color:'+gradeColor+';line-height:1">'+grade.label+'</div>';
+      html2+='<div style="font-size:9px;color:var(--text-2);margin-top:2px;font-weight:700">GRADE</div></div></div>';
+      const hasRev=d.avgRevenue>0;
+      const cols=hasRev?'repeat(5,minmax(0,1fr))':'repeat(4,minmax(0,1fr))';
+      html2+='<div style="display:grid;grid-template-columns:'+cols+';gap:6px;margin-bottom:'+(flags.length?'10':'0')+'px">';
       html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">On-Time</div><div class="kpi-val '+otCls+'" style="font-size:17px">'+(d.otPct===null?"&mdash;":d.otPct+"%")+'</div></div>';
       html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">Safety</div><div class="kpi-val '+sfCls+'" style="font-size:17px">'+(d.avgSafety===null?"&mdash;":d.avgSafety)+'</div></div>';
       html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">Late Rate</div><div class="kpi-val '+(d.lateRate===0?"kv-s":d.lateRate<=10?"kv-w":"kv-d")+'" style="font-size:17px">'+d.lateRate+'%</div></div>';
-      html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">Avg Missed</div><div class="kpi-val '+(d.avgMissed===0?"kv-s":d.avgMissed<=0.5?"kv-w":"kv-d")+'" style="font-size:17px">'+d.avgMissed+'</div></div></div>';
+      html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">Avg Missed</div><div class="kpi-val '+(d.avgMissed===0?"kv-s":d.avgMissed<=0.5?"kv-w":"kv-d")+'" style="font-size:17px">'+d.avgMissed+'</div></div>';
+      if(hasRev)html2+='<div class="kpi" style="padding:8px 4px"><div class="kpi-lbl">Avg Rev</div><div class="kpi-val" style="font-size:15px;color:var(--brand)">'+fmtMoneyAbbr(d.avgRevenue)+'</div></div>';
+      html2+='</div>';
       if(flags.length){
         html2+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-        flags.forEach(function(f){html2+='<span style="font-size:10px;padding:2px 8px;border-radius:12px;background:var(--danger-bg);color:var(--danger-text);font-weight:500">&#9888; '+f+'</span>';});
+        flags.forEach(function(f){html2+='<span style="font-size:10px;padding:2px 8px;border-radius:12px;background:var(--danger-bg);color:var(--danger-text);font-weight:600">&#9888; '+f+'</span>';});
         html2+='</div>';
       }
       html2+='</div>';
