@@ -2831,10 +2831,10 @@ function monthLabel(mk){const[y,m]=mk.split("-");return new Date(+y,+m-1,1).toLo
 
 function getBranchMonthRevenue(bid,mk){
   const brf=bid===st.branch?st.briefings:st.branchBriefings[bid]||{};
-  const tk=todayKey();
+  const tk=todayKey(); // exclude today — incomplete data skews pacing
   let total=0;
   Object.entries(brf).forEach(([dk,b])=>{
-    if(!dk.startsWith(mk)||dk>tk)return;
+    if(!dk.startsWith(mk)||dk>=tk)return;
     total+=getBranchDayRevenue(bid,dk);
   });
   return total;
