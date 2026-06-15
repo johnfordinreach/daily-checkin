@@ -132,7 +132,7 @@ textarea{height:64px;resize:none}
 /* ── KPI tiles ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}
 .kpi{background:var(--bg-2);border-radius:var(--radius-lg);padding:16px 12px;text-align:center;border:1px solid var(--border)}
-.kpi-lbl{font-size:10px;font-weight:800;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.kpi-lbl{font-size:9px;font-weight:800;color:var(--text-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em;line-height:1.3}
 .kpi-val{font-size:28px;font-weight:800;letter-spacing:-.6px}
 .kpi-delta{font-size:11px;margin-top:5px;font-weight:600}
 .kv-s{color:var(--ok-text)}.kv-w{color:var(--warn-text)}.kv-d{color:var(--danger-text)}
@@ -399,7 +399,6 @@ const RSCHIP={not_started:"rs-ns",in_progress:"rs-ip",finished:"rs-fn"};
 const BSSTEP={not_started:"ss-ns",in_progress:"ss-ip",finished:"ss-fn"};
 const BSBADGE={not_started:"sb-ns",in_progress:"sb-ip",finished:"sb-fn"};
 
-const FB_CONFIG_KEY="dfw_fb_config_v1";
 const MGR_KEY="dfw_manager_name_v1";
 const BRANCHES={
   dallas:{id:"dallas",label:"Dallas",storeKey:"dfw_briefings_v4b",collection:"dfw_briefings"},
@@ -618,25 +617,103 @@ function persistLocal(){
   try{localStorage.setItem(k,JSON.stringify(st.briefings));}catch(e){}
 }
 function persistBranchRoutes(){try{localStorage.setItem(BRANCH_ROUTES_KEY,JSON.stringify(st.branchRoutes));}catch(e){}}
-function getFbCfg(){try{const r=localStorage.getItem(FB_CONFIG_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
-function saveFbCfg(c){try{localStorage.setItem(FB_CONFIG_KEY,JSON.stringify(c));}catch(e){}}
-function clearFbCfg(){try{localStorage.removeItem(FB_CONFIG_KEY);}catch(e){}}
+// ---- Hardcoded Firebase config ----
+const FB_CONFIG={
+  apiKey:"AIzaSyCf5CdLY89puDb9jIgOL5yFT1654DRrsys",
+  authDomain:"dallas-daily-check-in.firebaseapp.com",
+  projectId:"dallas-daily-check-in",
+  storageBucket:"dallas-daily-check-in.firebasestorage.app",
+  messagingSenderId:"1009968896396",
+  appId:"1:1009968896396:web:e9b8757637e1f74c791ea9"
+};
+
+let fbUser=null; // currently signed-in Firebase user
 
 async function initFirebase(){
-  const cfg=getFbCfg();if(!cfg){st.syncStatus="local";return;}
   st.syncStatus="connecting";render();
   try{
     const am=await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
     const fm=await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-    fb.modules={...am,...fm};fb.app=am.initializeApp(cfg);
+    const au=await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
+    fb.modules={...am,...fm,...au};
+    fb.app=am.initializeApp(FB_CONFIG);
     fb.db=fm.getFirestore(fb.app);
-    st.syncStatus="live";
-    subAll();
-    subBudgets();
-    loadPinHash();
-    render();
+    fb.auth=au.getAuth(fb.app);
+    // Persist auth across sessions
+    await au.setPersistence(fb.auth,au.browserLocalPersistence);
+    // Listen for auth state
+    au.onAuthStateChanged(fb.auth,async user=>{
+      fbUser=user;
+      if(user){
+        st.syncStatus="live";
+        subAll();subBudgets();loadPinHash();
+        render();
+      } else {
+        st.syncStatus="local";
+        renderLoginScreen();
+      }
+    });
   }catch(e){st.syncStatus="error";st.syncError=e.message||String(e);render();}
 }
+
+function renderLoginScreen(){
+  document.getElementById("root").innerHTML=`
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;background:var(--bg)">
+      <img src="icon.png" style="width:80px;height:80px;border-radius:18px;box-shadow:var(--shadow-md);margin-bottom:20px" alt="">
+      <div style="font-size:26px;font-weight:800;color:var(--brand);margin-bottom:6px;letter-spacing:-.5px">InReach Check-in</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:32px">Sign in to continue</div>
+      <div style="width:100%;max-width:360px">
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px">Email</label>
+          <input id="login-email" type="email" autocomplete="email" placeholder="you@inreachservices.com" style="background:var(--bg);border:1.5px solid var(--border-2);color:var(--text)">
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px">Password</label>
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" style="background:var(--bg);border:1.5px solid var(--border-2);color:var(--text)">
+        </div>
+        <div id="login-error" style="color:var(--danger-text);font-size:12px;text-align:center;min-height:18px;margin-bottom:12px"></div>
+        <button id="login-btn" onclick="doLogin()" style="width:100%;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-lg);padding:16px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px rgba(199,58,13,.35)">Sign In</button>
+      </div>
+      <div style="margin-top:24px;font-size:11px;color:var(--text-3);text-align:center">Contact your administrator to reset your password.</div>
+    </div>`;
+  // Allow enter key to submit
+  setTimeout(()=>{
+    document.getElementById("login-email")?.addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("login-password")?.focus();});
+    document.getElementById("login-password")?.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+    document.getElementById("login-email")?.focus();
+  },100);
+}
+
+window.doLogin=async function(){
+  const email=(document.getElementById("login-email")?.value||"").trim();
+  const password=document.getElementById("login-password")?.value||"";
+  const err=document.getElementById("login-error");
+  const btn=document.getElementById("login-btn");
+  if(!email||!password){err.textContent="Please enter your email and password.";return;}
+  btn.textContent="Signing in…";btn.disabled=true;
+  try{
+    const{signInWithEmailAndPassword}=fb.modules;
+    await signInWithEmailAndPassword(fb.auth,email,password);
+    // onAuthStateChanged handles the rest
+  }catch(e){
+    const msgs={
+      "auth/invalid-credential":"Incorrect email or password.",
+      "auth/user-not-found":"No account found with that email.",
+      "auth/wrong-password":"Incorrect password.",
+      "auth/too-many-requests":"Too many attempts. Try again later.",
+      "auth/invalid-email":"Invalid email address."
+    };
+    err.textContent=msgs[e.code]||"Sign-in failed. Try again.";
+    btn.textContent="Sign In";btn.disabled=false;
+  }
+};
+
+window.doSignOut=async function(){
+  if(!confirm("Sign out?"))return;
+  const{signOut}=fb.modules;
+  await signOut(fb.auth);
+};
+
 function subAllBranches(){
   const{collection,onSnapshot}=fb.modules;
   // Unsubscribe existing listeners
@@ -1710,7 +1787,6 @@ window.confirmBulkImport=async function(){
 window.wipeAll=function(){if(!confirm("Delete ALL data?"))return;if(!confirm("Really sure?"))return;if(st.syncStatus==="live"){const{doc,deleteDoc}=fb.modules;Object.keys(st.briefings).forEach(k=>{try{deleteDoc(doc(fb.db,BRANCHES[st.branch].collection,k));}catch(e){}});}st.briefings={};persistLocal();render();showToast("All data deleted");};
 window.startFbSetup=function(){st.tab="fbsetup";render();};
 window.cancelFbSetup=function(){st.tab="settings";render();};
-window.connectFb=async function(){const txt=document.getElementById("fb-config-input").value.trim();if(!txt){alert("Paste your Firebase config.");return;}let cfg;try{const c=txt.replace(/^[^{]*/,"").replace(/[^}]*$/,"").trim();const j=c.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g,'$1"$2":').replace(/'/g,'"');cfg=JSON.parse(j);}catch(e){alert("Couldn't parse config.");return;}if(!cfg.projectId||!cfg.apiKey){alert("Missing apiKey or projectId.");return;}saveFbCfg(cfg);showToast("Connecting…");await initFirebase();st.tab="settings";render();if(st.syncStatus==="live")showToast("Live sync enabled!");};
 window.discFbBtn=function(){if(!confirm("Disconnect from Firebase?"))return;clearFbCfg();discFb();render();showToast("Disconnected");};
 
 // ---- UI helpers ----
@@ -2226,7 +2302,7 @@ function renderTrends(){
     <div class="kpi"><div class="kpi-lbl">Clean Days</div><div class="kpi-val kv-s">${clean}</div></div>
     ${hasRev?`<div class="kpi"><div class="kpi-lbl">Total Revenue</div><div class="kpi-val" style="font-size:18px;color:var(--brand)">${fmtMoneyAbbr(tRev)}</div>${window._sparkRev||""}</div>`:""}
     ${hasSpoilsShrink&&hasRev?`<div class="kpi"><div class="kpi-lbl">Spoils % Rev</div><div class="kpi-val kv-d" style="font-size:18px">${spoilsPct!==null?spoilsPct+"%":"—"}</div><div style="font-size:10px;color:var(--text-2);margin-top:2px">${fmtMoneyAbbr(tSpoils)}</div></div>`:""}
-    ${hasSpoilsShrink&&hasRev?`<div class="kpi"><div class="kpi-lbl">${shrinkIsNeg?"Neg Shrink":"Shrink"} % Rev</div><div class="kpi-val kv-d" style="font-size:18px">${shrinkPct!==null?shrinkPct+"%":"—"}</div><div style="font-size:10px;color:var(--text-2);margin-top:2px">${shrinkIsNeg?"-":""}${fmtMoneyAbbr(Math.abs(tShrink))}</div></div>`:""}
+    ${hasSpoilsShrink&&hasRev?`<div class="kpi"><div class="kpi-lbl">${shrinkIsNeg?"Shrink (neg)":"Shrink"} % Rev</div><div class="kpi-val kv-d" style="font-size:18px">${shrinkPct!==null?shrinkPct+"%":"—"}</div><div style="font-size:10px;color:var(--text-2);margin-top:2px">${shrinkIsNeg?"-":""}${fmtMoneyAbbr(Math.abs(tShrink))}</div></div>`:""}
   </div>
   <div class="chart-card"><div class="chart-title">On-Time Delivery</div><div class="chart-sub">(assets − missed) ÷ assets</div><div class="chart-wrap"><canvas id="chart-ot"></canvas></div></div>
   <div class="chart-card"><div class="chart-title">Safety Score</div><div class="chart-sub">Daily branch avg · target 95</div><div class="chart-wrap"><canvas id="chart-safety"></canvas></div></div>
@@ -2288,7 +2364,7 @@ function drawCharts(){
 }
 
 function renderSettings(){
-  const count=Object.keys(st.briefings).length;const cfg=getFbCfg();
+  const count=Object.keys(st.briefings).length;
   const routesBid=(()=>{const el=document.getElementById("routes-branch-sel");return(el&&el.value)||st.branch;})();
   const rList=branchRoutes(routesBid);
   return`<div class="app-header"><div><div class="app-title">Settings</div><div class="app-sub">Data, sync &amp; backup ${syncPill()}</div></div></div>
@@ -2349,11 +2425,11 @@ function renderSettings(){
       <button class="btn-sec" style="flex:0 0 auto;min-width:90px${notifCfg().enabled?";background:var(--ok-bg);color:var(--ok-text);border-color:var(--ok-border)":""}" onclick="st.tab='notifsetup';render()"><i class="ti ti-bell${notifCfg().enabled?"-ringing":""}"></i> ${notifCfg().enabled?"Manage":"Set up"}</button>
     </div>
   </div>
-  <span class="section-lbl">Live sync</span>
+  <span class="section-lbl">Account</span>
   <div class="card" style="margin-bottom:14px">
     <div class="setting-row">
-      <div class="setting-info"><div class="setting-title">${st.syncStatus==="live"?"Connected to Firebase":"Local-only mode"}</div><div class="setting-desc">${st.syncStatus==="live"?`Project: ${esc(cfg?.projectId||"")} — syncing in real time.`:"Set up Firebase for live multi-manager sync."}${st.syncStatus==="error"?`<br><span style="color:var(--danger-text)">${esc(st.syncError)}</span>`:""}</div></div>
-      ${st.syncStatus==="live"?`<button class="btn-sec btn-danger" style="flex:0 0 auto;min-width:110px" onclick="discFbBtn()"><i class="ti ti-plug-x"></i> Disconnect</button>`:`<button class="btn-sec" style="flex:0 0 auto;min-width:110px;background:var(--brand);color:white;border-color:var(--brand)" onclick="startFbSetup()"><i class="ti ti-cloud"></i> Set up</button>`}
+      <div class="setting-info"><div class="setting-title">${fbUser?esc(fbUser.email):"Not signed in"}</div><div class="setting-desc">${st.syncStatus==="live"?"Connected · syncing in real time":st.syncStatus==="error"?`<span style="color:var(--danger-text)">${esc(st.syncError)}</span>`:"Connecting…"}</div></div>
+      <button class="btn-sec btn-danger" style="flex:0 0 auto;min-width:100px" onclick="doSignOut()"><i class="ti ti-logout"></i> Sign Out</button>
     </div>
     <div class="setting-row"><div class="setting-info"><div class="setting-title">Your name</div><div class="setting-desc">Shown as "Last edited by X"</div></div></div>
     <div style="display:flex;gap:8px;padding-bottom:8px"><input id="mgr-name" type="text" value="${esc(st.managerName)}" placeholder="e.g. Mike Johnson"><button class="btn-sec" style="flex:0 0 auto;min-width:60px" onclick="setMgr()">Save</button></div>
@@ -3142,7 +3218,7 @@ function renderFbSetup(){
     <div class="setup-step"><div class="setup-num">5</div><div class="setup-text">Sidebar: <strong>Databases &amp; Storage → Firestore Database → Create database → Start in test mode</strong>.</div></div>
   </div>
   <div class="field"><label class="field-lbl">Firebase config</label><textarea id="fb-config-input" style="height:140px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px" placeholder='{ apiKey: "...", projectId: "...", ... }'></textarea></div>
-  <button class="btn-primary" onclick="connectFb()"><i class="ti ti-plug-connected"></i> Connect</button>
+
   <div class="warn-box" style="margin-top:14px"><i class="ti ti-alert-triangle" style="vertical-align:-2px;margin-right:4px"></i>Test mode expires in 30 days. Ask for production security rules before then.</div>`;
 }
 
@@ -3357,7 +3433,7 @@ function getDriverStats(bid,days){
     const lateRate=activeDays>0?Math.round(d.lateCount/activeDays*100):0;
     const avgMissed=activeDays>0?Math.round(d.missedTotal/activeDays*10)/10:0;
     // Trend: compare last half vs first half of period
-    const avgRevenue=d.revDays>0?Math.round(d.revenueTotal/d.revDays):0;
+    const avgRevenue=activeDays>0?Math.round(d.revenueTotal/activeDays):0;
     const avgDayType=d.revOffdays>d.revWorkdays?"off":"workday";
     return{...d,activeDays,otPct,avgSafety,lateRate,avgMissed,avgRevenue,avgDayType,unexcusedDays:d.unexcusedDays||0};
   }).filter(d=>d.days>0).sort((a,b)=>{
@@ -3915,7 +3991,10 @@ function scheduleMidnightFinish(){
 
 scheduleMidnightFinish();
 
-loadLocal();loadBudgets();loadNotifSettings();render();initFirebase();
+loadLocal();loadBudgets();loadNotifSettings();
+// Show connecting state immediately — auth state change will trigger first real render
+document.getElementById("root").innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px"><img src="icon.png" style="width:72px;height:72px;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.15)" alt=""><div style="font-size:13px;color:#888;font-weight:600">Connecting…</div></div>';
+initFirebase();
 </script>
 </body>
 </html>
