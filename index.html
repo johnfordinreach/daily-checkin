@@ -657,6 +657,9 @@ async function initFirebase(){
 }
 
 function renderLoginScreen(){
+  // Hide nav bar while on login screen
+  const nav=document.getElementById("nav-bar");
+  if(nav)nav.style.display="none";
   document.getElementById("root").innerHTML=`
     <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;background:var(--bg)">
       <img src="icon.png" style="width:80px;height:80px;border-radius:18px;box-shadow:var(--shadow-md);margin-bottom:20px" alt="">
@@ -673,10 +676,9 @@ function renderLoginScreen(){
         </div>
         <div id="login-error" style="color:var(--danger-text);font-size:12px;text-align:center;min-height:18px;margin-bottom:12px"></div>
         <button id="login-btn" onclick="doLogin()" style="width:100%;background:var(--brand);color:#fff;border:none;border-radius:var(--radius-lg);padding:16px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 3px 12px rgba(199,58,13,.35)">Sign In</button>
+        <button onclick="doForgotPassword()" style="width:100%;background:none;border:none;color:var(--text-3);font-size:12px;margin-top:12px;cursor:pointer;padding:8px">Forgot password?</button>
       </div>
-      <div style="margin-top:24px;font-size:11px;color:var(--text-3);text-align:center">Contact your administrator to reset your password.</div>
     </div>`;
-  // Allow enter key to submit
   setTimeout(()=>{
     document.getElementById("login-email")?.addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("login-password")?.focus();});
     document.getElementById("login-password")?.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
@@ -694,17 +696,35 @@ window.doLogin=async function(){
   try{
     const{signInWithEmailAndPassword}=fb.modules;
     await signInWithEmailAndPassword(fb.auth,email,password);
-    // onAuthStateChanged handles the rest
+    // Restore nav bar — onAuthStateChanged will call render()
+    const nav=document.getElementById("nav-bar");
+    if(nav)nav.style.display="";
   }catch(e){
+    console.error("Login error:",e.code,e.message);
     const msgs={
       "auth/invalid-credential":"Incorrect email or password.",
       "auth/user-not-found":"No account found with that email.",
       "auth/wrong-password":"Incorrect password.",
-      "auth/too-many-requests":"Too many attempts. Try again later.",
-      "auth/invalid-email":"Invalid email address."
+      "auth/too-many-requests":"Too many failed attempts — try again later.",
+      "auth/invalid-email":"Invalid email address.",
+      "auth/operation-not-allowed":"Email sign-in is not enabled. Contact your administrator.",
+      "auth/network-request-failed":"Network error — check your connection.",
+      "auth/user-disabled":"This account has been disabled."
     };
-    err.textContent=msgs[e.code]||"Sign-in failed. Try again.";
+    err.textContent=msgs[e.code]||`Sign-in failed (${e.code||"unknown"}). Contact your administrator.`;
     btn.textContent="Sign In";btn.disabled=false;
+  }
+};
+
+window.doForgotPassword=async function(){
+  const email=prompt("Enter your email address:");
+  if(!email)return;
+  try{
+    const{sendPasswordResetEmail}=fb.modules;
+    await sendPasswordResetEmail(fb.auth,email.trim());
+    alert("Password reset email sent. Check your inbox.");
+  }catch(e){
+    alert("Could not send reset email: "+(e.code==="auth/user-not-found"?"No account found with that email.":e.message));
   }
 };
 
