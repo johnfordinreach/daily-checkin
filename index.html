@@ -639,8 +639,17 @@ async function initFirebase(){
     fb.app=am.initializeApp(FB_CONFIG);
     fb.db=fm.getFirestore(fb.app);
     fb.auth=au.getAuth(fb.app);
-    // Persist auth across sessions
-    await au.setPersistence(fb.auth,au.browserLocalPersistence);
+    // Clear old localStorage briefing snapshots to free quota for auth
+    try{
+      Object.keys(localStorage).filter(k=>k.includes("_v4")||k.includes("_v1")||k.includes("briefing")||k.includes("dfw_briefings")).forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+    // Use IndexedDB for auth persistence — avoids localStorage quota issues
+    try{
+      await au.setPersistence(fb.auth,au.indexedDBLocalPersistence);
+    }catch(e){
+      // Fall back to session persistence if IndexedDB unavailable
+      try{await au.setPersistence(fb.auth,au.browserSessionPersistence);}catch(e2){}
+    }
     // Listen for auth state
     au.onAuthStateChanged(fb.auth,async user=>{
       fbUser=user;
